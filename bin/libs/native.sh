@@ -10,17 +10,27 @@ export COMPILE_NATIVE=1
 
 function install() {
   local ABI="$1"
-  local SO_FILE=$(find TMessagesProj/build/intermediates/stripped_native_libs -name "libtmessages*.so" | grep "/$ABI/" | head -n 1)
+  local SO_FILE=$(find TMessagesProj/build/intermediates/cxx -name "libtmessages*.so" | grep "/$ABI/" | head -n 1)
 
   if [ -z "$SO_FILE" ] || [ ! -f "$SO_FILE" ]; then
-    echo ">> Skip $ABI (not found in stripped_native_libs)"
-    # We exit with an error here so the CI workflow actually fails instead of silently generating a broken APK
+    if [ -n "$NATIVE_TARGET" ] && [ "$NATIVE_TARGET" != "$ABI" ]; then
+      echo ">> Skip $ABI (not the target for this run)"
+      return 0
+    fi
+    echo ">> Skip $ABI (not found in cxx - THIS IS AN ERROR!)"
     exit 1
   fi
   rm -rf $DIR/$ABI
   mkdir -p $DIR/$ABI
-  cp "$SO_FILE" $DIR/$ABI/
-  echo ">> Install $DIR/$ABI/$(basename "$SO_FILE")"
+  
+  local STRIP_CMD=$(find $ANDROID_HOME/ndk -name "llvm-strip" | head -n 1)
+  if [ -n "$STRIP_CMD" ] && [ -x "$STRIP_CMD" ]; then
+    $STRIP_CMD "$SO_FILE" -o "$DIR/$ABI/$(basename "$SO_FILE")"
+    echo ">> Installed and stripped $DIR/$ABI/$(basename "$SO_FILE")"
+  else
+    cp "$SO_FILE" $DIR/$ABI/
+    echo ">> Installed unstripped $DIR/$ABI/$(basename "$SO_FILE")"
+  fi
 }
 
 install armeabi-v7a
