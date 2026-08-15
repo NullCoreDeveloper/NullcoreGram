@@ -26,15 +26,21 @@ public class AyuGhostUtils {
         }
     }
 
-    private static final AyuStateVariable allowReadPacket = new AyuStateVariable();
+    private static final AyuStateVariable[] allowReadPacket = new AyuStateVariable[org.telegram.messenger.UserConfig.MAX_ACCOUNT_COUNT];
 
-    public static void setAllowReadPacket(boolean val, int resetAfter) {
-        allowReadPacket.val = val;
-        allowReadPacket.resetAfter = resetAfter;
+    static {
+        for (int i = 0; i < allowReadPacket.length; i++) {
+            allowReadPacket[i] = new AyuStateVariable();
+        }
     }
 
-    public static boolean getAllowReadPacket() {
-        return NekoConfig.sendReadMessagePackets || allowReadPacket.process();
+    public static void setAllowReadPacket(int currentAccount, boolean val, int resetAfter) {
+        allowReadPacket[currentAccount].val = val;
+        allowReadPacket[currentAccount].resetAfter = resetAfter;
+    }
+
+    public static boolean getAllowReadPacket(int currentAccount) {
+        return tw.nekomimi.nekogram.utils.AyuGhostConfig.sendReadMessagePackets[currentAccount] || allowReadPacket[currentAccount].process();
     }
 
     public static Long getDialogId(TLRPC.InputPeer peer) {

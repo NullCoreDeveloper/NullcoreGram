@@ -18568,7 +18568,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             span.append(" 👻");
             span.setSpan(new android.text.style.ForegroundColorSpan(Theme.getColor(Theme.key_text_RedRegular)), 0, span.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             currentTimeString = span;
-        } else if (edited && NekoConfig.saveEditedMessages.Bool()) {
+        } else if (edited && tw.nekomimi.nekogram.utils.AyuGhostConfig.saveEditedMessages[currentAccount]) {
             SpannableStringBuilder span = new SpannableStringBuilder(currentTimeString);
             span.setSpan(new android.text.style.ForegroundColorSpan(0xFFFB8C00), 0, span.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             currentTimeString = span;

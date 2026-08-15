@@ -332,19 +332,19 @@ public class ConnectionsManager extends BaseController {
 
     private boolean ayuGhostShouldSend(TLObject object) {
         // --- 不发送动态已读 ---
-        if (!NekoConfig.sendReadStoryPackets &&
+        if (!tw.nekomimi.nekogram.utils.AyuGhostConfig.sendReadStoryPackets[currentAccount] &&
                 (object instanceof TL_stories.TL_stories_readStories ||
                         object instanceof TL_stories.TL_stories_incrementStoryViews)) {
             return false;
         }
         // --- 不发送输入状态 ---
-        if (!NekoConfig.sendUploadProgress &&
+        if (!tw.nekomimi.nekogram.utils.AyuGhostConfig.sendUploadProgress[currentAccount] &&
                 (object instanceof TLRPC.TL_messages_setTyping ||
                         object instanceof TLRPC.TL_messages_setEncryptedTyping)) {
             return false;
         }
         // --- 不发送已读消息 ---
-        if (!NekoConfig.sendReadMessagePackets && !AyuGhostUtils.getAllowReadPacket() &&
+        if (!tw.nekomimi.nekogram.utils.AyuGhostConfig.sendReadMessagePackets[currentAccount] && !AyuGhostUtils.getAllowReadPacket(currentAccount) &&
                 (object instanceof TLRPC.TL_messages_readHistory ||
                         object instanceof TLRPC.TL_messages_readMessageContents ||
                         object instanceof TLRPC.TL_channels_readHistory ||
@@ -356,11 +356,11 @@ public class ConnectionsManager extends BaseController {
 
     private RequestDelegate ayuGhostApplyCallbackHooks(TLObject object, RequestDelegate onComplete) {
         // --- 发送消息后自动已读对面消息 ---
-        if (NekoConfig.markReadAfterSend && !NekoConfig.sendReadMessagePackets) {
+        if (tw.nekomimi.nekogram.utils.AyuGhostConfig.markReadAfterSend[currentAccount] && !tw.nekomimi.nekogram.utils.AyuGhostConfig.sendReadMessagePackets[currentAccount]) {
             onComplete = ayuGhostWrapMarkReadHook(object, onComplete);
         }
         // --- 在线后立即离线 ---
-        if (NekoConfig.sendOfflineAfterOnline &&
+        if (tw.nekomimi.nekogram.utils.AyuGhostConfig.sendOfflineAfterOnline[currentAccount] &&
                 (object instanceof TLRPC.TL_messages_sendMessage ||
                         object instanceof TLRPC.TL_messages_sendMedia ||
                         object instanceof TLRPC.TL_messages_sendMultiMedia)) {
@@ -388,7 +388,7 @@ public class ConnectionsManager extends BaseController {
                 TLRPC.TL_messages_readHistory request = new TLRPC.TL_messages_readHistory();
                 request.peer = peer;
                 request.max_id = maxId;
-                AyuGhostUtils.setAllowReadPacket(true, 1);
+                AyuGhostUtils.setAllowReadPacket(currentAccount, true, 1);
                 sendRequest(request, (a1, a2) -> {});
             });
         };
@@ -489,7 +489,7 @@ public class ConnectionsManager extends BaseController {
         // start request hook
         {
             // --- 不发送在线状态 ---
-            if (!NekoConfig.sendOnlinePackets && object instanceof TL_account.updateStatus) {
+            if (!tw.nekomimi.nekogram.utils.AyuGhostConfig.sendOnlinePackets[currentAccount] && object instanceof TL_account.updateStatus) {
                 // 不发送在线状态，将状态设置为离线
                 TL_account.updateStatus status = (TL_account.updateStatus) object;
                 status.offline = true;  // 将在线状态改为离线

@@ -20073,7 +20073,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 for (int a = 0, size2 = messageObjects.size(); a < size2; a++) {
                     messagesRes.messages.add(messageObjects.get(a).messageOwner);
                 }
-                if (tw.nekomimi.nekogram.NekoConfig.saveEditedMessages) {
+                if (tw.nekomimi.nekogram.utils.AyuGhostConfig.saveEditedMessages[currentAccount]) {
                     getMessagesStorage().saveAyuEditedMessages(editingMessages.keyAt(b), messagesRes.messages);
                 }
                 getMessagesStorage().putMessages(messagesRes, editingMessages.keyAt(b), -2, 0, false, 0, 0);
@@ -21473,8 +21473,8 @@ public class MessagesController extends BaseController implements NotificationCe
             for (int a = 0, size = deletedMessages.size(); a < size; a++) {
                 final long key = deletedMessages.keyAt(a);
                 final ArrayList<Integer> arrayList = deletedMessages.valueAt(a);
-                final boolean saveDeleted = tw.nekomimi.nekogram.NekoConfig.saveDeletedMessages;
-                final boolean saveTtl = tw.nekomimi.nekogram.NekoConfig.saveTtlMedia;
+                final boolean saveDeleted = tw.nekomimi.nekogram.utils.AyuGhostConfig.saveDeletedMessages[currentAccount];
+                final boolean saveTtl = tw.nekomimi.nekogram.utils.AyuGhostConfig.saveTtlMedia[currentAccount];
 
                 if (!saveDeleted && !saveTtl) {
                     getMessagesStorage().getStorageQueue().postRunnable(() -> {

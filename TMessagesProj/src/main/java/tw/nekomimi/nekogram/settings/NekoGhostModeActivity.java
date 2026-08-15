@@ -17,15 +17,24 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.*;
 import org.telegram.ui.ActionBar.Theme;
+import org.telegram.ui.ActionBar.BottomSheet;
 import org.telegram.ui.Cells.*;
+import org.telegram.ui.Components.AlertsCreator;
+import org.telegram.ui.Components.LayoutHelper;
+import org.telegram.ui.Components.RecyclerListView;
 
 import java.util.Locale;
 
+import org.telegram.tgnet.TLRPC;
 import tw.nekomimi.nekogram.NekoConfig;
+import tw.nekomimi.nekogram.utils.AyuGhostConfig;
 import tw.nekomimi.nekogram.utils.AyuGhostUtils;
 
 public class NekoGhostModeActivity extends BaseNekoSettingsActivity {
     // title
+    private int selectedAccount = UserConfig.selectedAccount;
+
+    private int accountSelectorRow;
     private int GhostHeaderRow;
     private int GhostModeTitleRow;
 
@@ -48,6 +57,7 @@ public class NekoGhostModeActivity extends BaseNekoSettingsActivity {
     protected void updateRows() {
         super.updateRows();
 
+        accountSelectorRow = addRow();
         GhostHeaderRow = addRow();
         GhostModeTitleRow = addRow();
         if (ghostModeMenuExpanded) {
@@ -74,7 +84,6 @@ public class NekoGhostModeActivity extends BaseNekoSettingsActivity {
 
     @Override
     public boolean onFragmentCreate() {
-        // todo: register `MESSAGES_DELETED_NOTIFICATION` on all notification centers, not only on the current account
         super.onFragmentCreate();
         return true;
     }
@@ -85,22 +94,70 @@ public class NekoGhostModeActivity extends BaseNekoSettingsActivity {
     }
 
     private void updateGhostViews() {
-        var isActive = NekoConfig.isGhostModeActive();
+        var isActive = AyuGhostConfig.isGhostModeActive(selectedAccount);
 
         listAdapter.notifyItemChanged(GhostModeTitleRow, PARTIAL);
         listAdapter.notifyItemChanged(sendReadMessagePacketsRow, !isActive);
         listAdapter.notifyItemChanged(sendOnlinePacketsRow, !isActive);
         listAdapter.notifyItemChanged(sendUploadProgressRow, !isActive);
-        listAdapter.notifyItemChanged(sendReadStoryPacketsRow,!isActive);
+        listAdapter.notifyItemChanged(sendReadStoryPacketsRow, !isActive);
         listAdapter.notifyItemChanged(sendOfflineAfterOnlineRow, isActive);
 
-        NotificationCenter.getInstance(UserConfig.selectedAccount).postNotificationName(NotificationCenter.mainUserInfoChanged);
+        NotificationCenter.getInstance(selectedAccount).postNotificationName(NotificationCenter.mainUserInfoChanged);
     }
 
+    private void showAccountSelectBottomSheet() {
+        BottomSheet.Builder builder = new BottomSheet.Builder(getParentActivity());
+        builder.setApplyTopPadding(false);
+        
+        RecyclerListView listView = new RecyclerListView(getParentActivity());
+        listView.setLayoutManager(new androidx.recyclerview.widget.LinearLayoutManager(getParentActivity()));
+        listView.setAdapter(new RecyclerListView.SelectionAdapter() {
+            @Override
+            public boolean isEnabled(RecyclerView.ViewHolder holder) {
+                return true;
+            }
+
+            @NonNull
+            @Override
+            public RecyclerView.ViewHolder onCreateViewHolder(@NonNull android.view.ViewGroup parent, int viewType) {
+                TextSettingsCell textCell = new TextSettingsCell(mContext);
+                textCell.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.WRAP_CONTENT));
+                return new RecyclerListView.Holder(textCell);
+            }
+
+            @Override
+            public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+                TextSettingsCell textCell = (TextSettingsCell) holder.itemView;
+                TLRPC.User user = UserConfig.getInstance(position).getCurrentUser();
+                String name = user != null ? UserObject.getUserName(user) : "Account " + position;
+                textCell.setText(name, position == selectedAccount);
+            }
+
+            @Override
+            public int getItemCount() {
+                return UserConfig.MAX_ACCOUNT_COUNT;
+            }
+        });
+        
+        listView.setOnItemClickListener((view, position) -> {
+            if (UserConfig.getInstance(position).isClientActivated()) {
+                selectedAccount = position;
+                listAdapter.notifyDataSetChanged();
+                builder.getDismissRunnable().run();
+            }
+        });
+        
+        builder.setCustomView(listView);
+        builder.setTitle("Select Account for Ghost Mode");
+        showDialog(builder.create());
+    }
 
     @Override
     protected void onItemClick(View view, int position, float x, float y) {
-        if (position == GhostModeTitleRow) {
+        if (position == accountSelectorRow) {
+            showAccountSelectBottomSheet();
+        } else if (position == GhostModeTitleRow) {
             ghostModeMenuExpanded ^= true;
             updateRows();
             listAdapter.notifyItemChanged(GhostModeTitleRow, PARTIAL);
@@ -110,44 +167,44 @@ public class NekoGhostModeActivity extends BaseNekoSettingsActivity {
                 listAdapter.notifyItemRangeRemoved(GhostModeTitleRow + 1, 5);
             }
         } else if (position == sendReadMessagePacketsRow) {
-            NekoConfig.putBoolean("sendReadMessagePackets", NekoConfig.sendReadMessagePackets ^= true);
-            ((CheckBoxCell) view).setChecked(NekoConfig.sendReadMessagePackets, true);
-            AyuGhostUtils.setAllowReadPacket(false, -1);
+            AyuGhostConfig.putBoolean(selectedAccount, "sendReadMessagePackets", AyuGhostConfig.sendReadMessagePackets[selectedAccount] ^= true);
+            ((CheckBoxCell) view).setChecked(AyuGhostConfig.sendReadMessagePackets[selectedAccount], true);
+            AyuGhostUtils.setAllowReadPacket(selectedAccount, false, -1);
             updateGhostViews();
         } else if (position == sendOnlinePacketsRow) {
-            NekoConfig.putBoolean("sendOnlinePackets", NekoConfig.sendOnlinePackets ^= true);
-            ((CheckBoxCell) view).setChecked(NekoConfig.sendOnlinePackets, true);
+            AyuGhostConfig.putBoolean(selectedAccount, "sendOnlinePackets", AyuGhostConfig.sendOnlinePackets[selectedAccount] ^= true);
+            ((CheckBoxCell) view).setChecked(AyuGhostConfig.sendOnlinePackets[selectedAccount], true);
             updateGhostViews();
         } else if (position == sendUploadProgressRow) {
-            NekoConfig.putBoolean("sendUploadProgress", NekoConfig.sendUploadProgress ^= true);
-            ((CheckBoxCell) view).setChecked(NekoConfig.sendUploadProgress, true);
+            AyuGhostConfig.putBoolean(selectedAccount, "sendUploadProgress", AyuGhostConfig.sendUploadProgress[selectedAccount] ^= true);
+            ((CheckBoxCell) view).setChecked(AyuGhostConfig.sendUploadProgress[selectedAccount], true);
             updateGhostViews();
         } else if (position == sendReadStoryPacketsRow) {
-            NekoConfig.putBoolean("sendReadStoryPackets", NekoConfig.sendReadStoryPackets ^= true);
-            ((CheckBoxCell) view).setChecked(NekoConfig.sendReadStoryPackets, true);
+            AyuGhostConfig.putBoolean(selectedAccount, "sendReadStoryPackets", AyuGhostConfig.sendReadStoryPackets[selectedAccount] ^= true);
+            ((CheckBoxCell) view).setChecked(AyuGhostConfig.sendReadStoryPackets[selectedAccount], true);
             updateGhostViews();
         } else if (position == sendOfflineAfterOnlineRow) {
-            NekoConfig.putBoolean("sendOfflineAfterOnline", NekoConfig.sendOfflineAfterOnline ^= true);
-            ((CheckBoxCell) view).setChecked(NekoConfig.sendOfflineAfterOnline, true);
+            AyuGhostConfig.putBoolean(selectedAccount, "sendOfflineAfterOnline", AyuGhostConfig.sendOfflineAfterOnline[selectedAccount] ^= true);
+            ((CheckBoxCell) view).setChecked(AyuGhostConfig.sendOfflineAfterOnline[selectedAccount], true);
             updateGhostViews();
         } else if (position == markReadAfterSendRow) {
-            NekoConfig.putBoolean("markReadAfterSend", NekoConfig.markReadAfterSend ^= true);
-            ((TextCheckCell) view).setChecked(NekoConfig.markReadAfterSend);
-            AyuGhostUtils.setAllowReadPacket(false, -1);
+            AyuGhostConfig.putBoolean(selectedAccount, "markReadAfterSend", AyuGhostConfig.markReadAfterSend[selectedAccount] ^= true);
+            ((TextCheckCell) view).setChecked(AyuGhostConfig.markReadAfterSend[selectedAccount]);
+            AyuGhostUtils.setAllowReadPacket(selectedAccount, false, -1);
         } else if (position == saveDeletedMessagesRow) {
-            NekoConfig.putBoolean("saveDeletedMessages", NekoConfig.saveDeletedMessages ^= true);
-            ((TextCheckCell) view).setChecked(NekoConfig.saveDeletedMessages);
+            AyuGhostConfig.putBoolean(selectedAccount, "saveDeletedMessages", AyuGhostConfig.saveDeletedMessages[selectedAccount] ^= true);
+            ((TextCheckCell) view).setChecked(AyuGhostConfig.saveDeletedMessages[selectedAccount]);
         } else if (position == saveTtlMediaRow) {
-            NekoConfig.putBoolean("saveTtlMedia", NekoConfig.saveTtlMedia ^= true);
-            ((TextCheckCell) view).setChecked(NekoConfig.saveTtlMedia);
+            AyuGhostConfig.putBoolean(selectedAccount, "saveTtlMedia", AyuGhostConfig.saveTtlMedia[selectedAccount] ^= true);
+            ((TextCheckCell) view).setChecked(AyuGhostConfig.saveTtlMedia[selectedAccount]);
         } else if (position == saveEditedMessagesRow) {
-            NekoConfig.putBoolean("saveEditedMessages", NekoConfig.saveEditedMessages ^= true);
-            ((TextCheckCell) view).setChecked(NekoConfig.saveEditedMessages);
+            AyuGhostConfig.putBoolean(selectedAccount, "saveEditedMessages", AyuGhostConfig.saveEditedMessages[selectedAccount] ^= true);
+            ((TextCheckCell) view).setChecked(AyuGhostConfig.saveEditedMessages[selectedAccount]);
         } else if (position == showGhostToggleInDrawerRow) {
-            NekoConfig.putBoolean("showGhostToggleInDrawer", NekoConfig.showGhostToggleInDrawer ^= true);
-            ((TextCheckCell) view).setChecked(NekoConfig.showGhostToggleInDrawer);
+            AyuGhostConfig.putBoolean(selectedAccount, "showGhostToggleInDrawer", AyuGhostConfig.showGhostToggleInDrawer[selectedAccount] ^= true);
+            ((TextCheckCell) view).setChecked(AyuGhostConfig.showGhostToggleInDrawer[selectedAccount]);
 
-            NotificationCenter.getInstance(UserConfig.selectedAccount).postNotificationName(NotificationCenter.mainUserInfoChanged);
+            NotificationCenter.getInstance(selectedAccount).postNotificationName(NotificationCenter.mainUserInfoChanged);
         }
     }
 
@@ -163,11 +220,11 @@ public class NekoGhostModeActivity extends BaseNekoSettingsActivity {
 
     private int getGhostModeSelectedCount() {
         int count = 0;
-        if (!NekoConfig.sendReadMessagePackets) count++;
-        if (!NekoConfig.sendOnlinePackets) count++;
-        if (!NekoConfig.sendUploadProgress) count++;
-        if (!NekoConfig.sendReadStoryPackets) count++;
-        if (NekoConfig.sendOfflineAfterOnline) count++;
+        if (!AyuGhostConfig.sendReadMessagePackets[selectedAccount]) count++;
+        if (!AyuGhostConfig.sendOnlinePackets[selectedAccount]) count++;
+        if (!AyuGhostConfig.sendUploadProgress[selectedAccount]) count++;
+        if (!AyuGhostConfig.sendReadStoryPackets[selectedAccount]) count++;
+        if (AyuGhostConfig.sendOfflineAfterOnline[selectedAccount]) count++;
         return count;
     }
 
@@ -196,24 +253,24 @@ public class NekoGhostModeActivity extends BaseNekoSettingsActivity {
                     TextCheckCell textCheckCell = (TextCheckCell) holder.itemView;
                     textCheckCell.setEnabled(true, null);
                     if (position == markReadAfterSendRow) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.MarkReadAfterAction), NekoConfig.markReadAfterSend, divider);
+                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.MarkReadAfterAction), AyuGhostConfig.markReadAfterSend[selectedAccount], divider);
                     } else if (position == saveDeletedMessagesRow) {
-                        textCheckCell.setTextAndCheck("Save Deleted Messages", NekoConfig.saveDeletedMessages, divider);
+                        textCheckCell.setTextAndCheck("Save Deleted Messages", AyuGhostConfig.saveDeletedMessages[selectedAccount], divider);
                     } else if (position == saveTtlMediaRow) {
-                        textCheckCell.setTextAndCheck("Save TTL Media", NekoConfig.saveTtlMedia, divider);
+                        textCheckCell.setTextAndCheck("Save TTL Media", AyuGhostConfig.saveTtlMedia[selectedAccount], divider);
                     } else if (position == saveEditedMessagesRow) {
-                        textCheckCell.setTextAndCheck("Save Edited Messages", NekoConfig.saveEditedMessages, divider);
+                        textCheckCell.setTextAndCheck("Save Edited Messages", AyuGhostConfig.saveEditedMessages[selectedAccount], divider);
                     } else if (position == showGhostToggleInDrawerRow) {
-                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.GhostMode), NekoConfig.showGhostToggleInDrawer, divider);
+                        textCheckCell.setTextAndCheck(LocaleController.getString(R.string.GhostMode), AyuGhostConfig.showGhostToggleInDrawer[selectedAccount], divider);
                     }
                     break;
                 case TYPE_CHECK2:
                     TextCheckCell2 textCheckCell2 = (TextCheckCell2) holder.itemView;
                     if (position == GhostModeTitleRow) {
                         int selectedCount = getGhostModeSelectedCount();
-                        textCheckCell2.setTextAndCheck(LocaleController.getString(R.string.GhostMode), NekoConfig.isGhostModeActive(), divider, true);
+                        textCheckCell2.setTextAndCheck(LocaleController.getString(R.string.GhostMode), AyuGhostConfig.isGhostModeActive(selectedAccount), divider, true);
                         textCheckCell2.setCollapseArrow(String.format(Locale.US, "%d/5", selectedCount), !ghostModeMenuExpanded, () -> {
-                            NekoConfig.toggleGhostMode();
+                            AyuGhostConfig.toggleGhostMode(selectedAccount);
                             updateGhostViews();
                         });
                     }
@@ -223,23 +280,34 @@ public class NekoGhostModeActivity extends BaseNekoSettingsActivity {
                 case TYPE_CHECKBOX2:
                     CheckBoxCell checkBoxCell = (CheckBoxCell) holder.itemView;
                     if (position == sendReadMessagePacketsRow) {
-                        checkBoxCell.setText(LocaleController.getString(R.string.DontReadMessages), "", !NekoConfig.sendReadMessagePackets, divider, true);
+                        checkBoxCell.setText(LocaleController.getString(R.string.DontReadMessages), "", !AyuGhostConfig.sendReadMessagePackets[selectedAccount], divider, true);
                     } else if (position == sendOnlinePacketsRow) {
-                        checkBoxCell.setText(LocaleController.getString(R.string.DontSendOnlinePackets), "", !NekoConfig.sendOnlinePackets, divider, true);
+                        checkBoxCell.setText(LocaleController.getString(R.string.DontSendOnlinePackets), "", !AyuGhostConfig.sendOnlinePackets[selectedAccount], divider, true);
                     } else if (position == sendUploadProgressRow) {
-                        checkBoxCell.setText(LocaleController.getString(R.string.DontSendUploadProgress), "", !NekoConfig.sendUploadProgress, divider, true);
+                        checkBoxCell.setText(LocaleController.getString(R.string.DontSendUploadProgress), "", !AyuGhostConfig.sendUploadProgress[selectedAccount], divider, true);
                     } else if (position == sendReadStoryPacketsRow) {
-                        checkBoxCell.setText(LocaleController.getString(R.string.DontReadStories), "", !NekoConfig.sendReadStoryPackets, divider, true);
+                        checkBoxCell.setText(LocaleController.getString(R.string.DontReadStories), "", !AyuGhostConfig.sendReadStoryPackets[selectedAccount], divider, true);
                     } else if (position == sendOfflineAfterOnlineRow) {
-                        checkBoxCell.setText(LocaleController.getString(R.string.SendOfflinePacketAfterOnline), "", NekoConfig.sendOfflineAfterOnline, divider, true);
+                        checkBoxCell.setText(LocaleController.getString(R.string.SendOfflinePacketAfterOnline), "", AyuGhostConfig.sendOfflineAfterOnline[selectedAccount], divider, true);
                     }
                     checkBoxCell.setPad(1);
+                    break;
+                case TYPE_TEXT_SETTINGS:
+                    TextSettingsCell textSettingsCell = (TextSettingsCell) holder.itemView;
+                    if (position == accountSelectorRow) {
+                        TLRPC.User user = UserConfig.getInstance(selectedAccount).getCurrentUser();
+                        String name = user != null ? UserObject.getUserName(user) : "Account " + selectedAccount;
+                        textSettingsCell.setTextAndValue("Configure Ghost Mode for Account", name, divider);
+                    }
                     break;
             }
         }
 
         @Override
         public int getItemViewType(int position) {
+            if (position == accountSelectorRow) {
+                return TYPE_TEXT_SETTINGS;
+            }
             if (position == ghostDividerRow) {
                 return TYPE_SHADOW;
             }

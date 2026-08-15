@@ -27,18 +27,7 @@ public class NekoConfig {
 
     public static final SharedPreferences preferences = NkmrConfig.preferences;
     public static final Object sync = new Object();
-    public static boolean sendReadMessagePackets;
-    public static boolean sendOnlinePackets;
-    public static boolean sendOfflineAfterOnline;
-    public static boolean sendUploadProgress;
-    public static boolean sendReadStoryPackets;
-    public static boolean markReadAfterSend;
-    public static boolean showGhostToggleInDrawer;
-    public static boolean saveDeletedMessages;
-    public static boolean saveTtlMedia;
-    public static boolean saveEditedMessages;
     public static final String channelAliasPrefix = "channelAliasPrefix_";
-
     private static boolean configLoaded = false;
     private static final ArrayList<ConfigItem> configs = new ArrayList<>();
     public static final ArrayList<DatacenterInfo> datacenterInfos = new ArrayList<>(5);
@@ -275,55 +264,14 @@ public class NekoConfig {
             for (int a = 1; a <= 5; a++) {
                 datacenterInfos.add(new DatacenterInfo(a));
             }
-            // ~ Ghost essentials
-            sendReadMessagePackets = preferences.getBoolean("sendReadMessagePackets", true);
-            sendOnlinePackets = preferences.getBoolean("sendOnlinePackets", true);
-            sendUploadProgress = preferences.getBoolean("sendUploadProgress", true);
-            sendReadStoryPackets = preferences.getBoolean("sendReadStoryPackets", true);
-            sendOfflineAfterOnline = preferences.getBoolean("sendOfflineAfterOnline", false);
-            markReadAfterSend = preferences.getBoolean("markReadAfterSend", true);
-            // ~ Ghost other options
-            showGhostToggleInDrawer = preferences.getBoolean("showGhostToggleInDrawer", false);
-            
-            // ~ AyuGram features
-            saveDeletedMessages = preferences.getBoolean("saveDeletedMessages", false);
-            saveTtlMedia = preferences.getBoolean("saveTtlMedia", false);
-            saveEditedMessages = preferences.getBoolean("saveEditedMessages", false);
+            tw.nekomimi.nekogram.utils.AyuGhostConfig.loadConfig();
 
             NkmrConfig.compact();
             configLoaded = true;
         }
     }
 
-    public static void setGhostMode(boolean enabled) {
-        sendReadMessagePackets   = !enabled;
-        sendOnlinePackets        = !enabled;
-        sendUploadProgress       = !enabled;
-        sendReadStoryPackets     = !enabled;
-        sendOfflineAfterOnline   = enabled;
 
-        preferences.edit()
-                .putBoolean("sendReadMessagePackets", sendReadMessagePackets)
-                .putBoolean("sendOnlinePackets", sendOnlinePackets)
-                .putBoolean("sendUploadProgress", sendUploadProgress)
-                .putBoolean("sendReadStoryPackets", sendReadStoryPackets)
-                .putBoolean("sendOfflineAfterOnline", sendOfflineAfterOnline)
-                .apply();
-    }
-
-    public static void putBoolean(String key, boolean value) {
-        preferences.edit().putBoolean(key, value).apply();
-    }
-    public static void toggleGhostMode() {
-        setGhostMode(!isGhostModeActive());
-    }
-    public static boolean isGhostModeActive() {
-        return !sendReadMessagePackets
-                && !sendOnlinePackets
-                && !sendUploadProgress
-                && !sendReadStoryPackets
-                && sendOfflineAfterOnline;
-    }
 
     public static void checkMigrate(boolean force) {
         // TODO remove this after some versions.
