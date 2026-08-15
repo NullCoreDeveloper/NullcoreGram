@@ -20,11 +20,11 @@
     <string name="SendReactions">Trimite reactii</string>
     <string name="ShowReactions">Arată reacțiile</string>
     <string name="CustomTitle">Titlu personalizat</string>
-    <string name="CustomTitleHint">Lăsați necompletat pentru a utiliza Nagram</string>
+    <string name="CustomTitleHint">Lăsați necompletat pentru a utiliza NullcoreGram</string>
     <string name="CodeSyntaxHighlight">Evidențiere sintaxă cod</string>
     <string name="CreateMono">Creează Monospace</string>
     <string name="CreateMonoLanguage">Limbă cod</string>
-    <string name="CodeSyntaxHighlightDetails">Mulţumită prismjs şi Nekogram</string>
+    <string name="CodeSyntaxHighlightDetails">Mulţumită prismjs şi NullcoreGram</string>
     <string name="UseSystemUnlock">Deblocați codul de acces utilizați sistemul ui</string>
     <string name="CopyPhoto">Copiază fotografia</string>
     <string name="PhotoCopied">Fotografie copiată în clipboard</string>
@@ -77,7 +77,7 @@
     <string name="IconDecoration">Decorare pictograme</string>
     <string name="NotificationIcon">Iconiță notificare</string>
     <string name="Official">Oficial</string>
-    <string name="Nekogram">Nekogram</string>
+    <string name="NullcoreGram">NullcoreGram</string>
     <string name="HalloWeen">HalloWeen</string>
     <string name="ShowOnlineStatus">Arată starea online</string>
     <string name="ShowOnlineStatusNotice">Arată starea online a altor persoane lângă fotografia lor de profil în grupuri</string>

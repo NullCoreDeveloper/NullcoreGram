@@ -20,11 +20,11 @@
     <string name="SendReactions">Tepkileri Gönder</string>
     <string name="ShowReactions">Tepkileri Göster</string>
     <string name="CustomTitle">Özel Başlık</string>
-    <string name="CustomTitleHint">Nagram\'ı kullanmak için boş bırakın</string>
+    <string name="CustomTitleHint">NullcoreGram\'ı kullanmak için boş bırakın</string>
     <string name="CodeSyntaxHighlight">Kod söz dizimini vurgulama</string>
     <string name="CreateMono">Tek Boşluk Oluştur</string>
     <string name="CreateMonoLanguage">Kod dili</string>
-    <string name="CodeSyntaxHighlightDetails">Prismjs ve Nekogram\'a teşekkürler</string>
+    <string name="CodeSyntaxHighlightDetails">Prismjs ve NullcoreGram\'a teşekkürler</string>
     <string name="UseSystemUnlock">Parola Kilidi Açma sistem kullanıcı arayüzünü kullanın</string>
     <string name="CopyPhoto">Fotoğrafı Kopyala</string>
     <string name="PhotoCopied">Fotoğraf Pano\'ya kopyalandı</string>
@@ -77,7 +77,7 @@
     <string name="IconDecoration">Simge Dekorasyonu</string>
     <string name="NotificationIcon">Bildirim Simgesi</string>
     <string name="Official">Resmi</string>
-    <string name="Nekogram">Nekogram</string>
+    <string name="NullcoreGram">NullcoreGram</string>
     <string name="HalloWeen">Cadılar bayramı</string>
     <string name="ShowOnlineStatus">Çevrimiçi Durumu Göster</string>
     <string name="ShowOnlineStatusNotice">Gruplardaki diğer kişilerin çevrimiçi durumunu profil fotoğraflarının yanında gösterin</string>

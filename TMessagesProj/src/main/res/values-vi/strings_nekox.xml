@@ -170,7 +170,7 @@
     <string name="DisableDeveloperMode">Tắt Chế độ nhà phát triển</string>
     <string name="DeveloperSettings">Cài đặt nhà phát triển</string>
     <string name="LoginSettings">Cài đặt đăng nhập</string>
-    <string name="NekoXFaq">FAQ Nagram</string>
+    <string name="NekoXFaq">FAQ NullcoreGram</string>
     <string name="TransSite">Nền tảng Dịch</string>
     <string name="OpenKayChain">Ứng dụng khách OpenPGP</string>
     <string name="OpenPGPApp">Nhà cung cấp OpenPGP</string>
@@ -271,7 +271,7 @@
     <string name="ShareMessages">Chia sẻ</string>
     <string name="AutoCheckUpdatePreview">Xem trước (Không ổn định)</string>
     <string name="NekoXUpdateTranslationHint">Nhấn để dịch nhật ký thay đổi</string>
-    <string name="AppUpdateNekoX">Cập nhật Nagram</string>
+    <string name="AppUpdateNekoX">Cập nhật NullcoreGram</string>
     <string name="Name">Tên</string>
     <string name="channelAlias">Bí danh của kênh</string>
     <string name="labelChannelUserDetails">Nếu người gửi tin nhắn là \"Kênh\", nó sẽ được gắn nhãn \"Kênh\".</string>

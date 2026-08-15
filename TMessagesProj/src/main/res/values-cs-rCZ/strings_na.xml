@@ -20,11 +20,11 @@
     <string name="SendReactions">Odeslat reakce</string>
     <string name="ShowReactions">Zobrazit reakce</string>
     <string name="CustomTitle">Vlastní titulek</string>
-    <string name="CustomTitleHint">Nechte prázdné pro použití Nagram</string>
+    <string name="CustomTitleHint">Nechte prázdné pro použití NullcoreGram</string>
     <string name="CodeSyntaxHighlight">Zvýraznění syntaxe kódu</string>
     <string name="CreateMono">Vytvořit Monospace</string>
     <string name="CreateMonoLanguage">Jazyk kódu</string>
-    <string name="CodeSyntaxHighlightDetails">Díky prismjs a Nekogram</string>
+    <string name="CodeSyntaxHighlightDetails">Díky prismjs a NullcoreGram</string>
     <string name="UseSystemUnlock">Heslo pro odemknutí pomocí systémového ui</string>
     <string name="CopyPhoto">Kopírovat fotografii</string>
     <string name="PhotoCopied">Fotka zkopírována do schránky</string>
@@ -77,7 +77,7 @@
     <string name="IconDecoration">Dekorace ikon</string>
     <string name="NotificationIcon">Ikona oznámení</string>
     <string name="Official">Úředník</string>
-    <string name="Nekogram">Nekogram</string>
+    <string name="NullcoreGram">NullcoreGram</string>
     <string name="HalloWeen">HalloWeen</string>
     <string name="ShowOnlineStatus">Zobrazit stav online</string>
     <string name="ShowOnlineStatusNotice">Zobrazit stav online ostatních lidí vedle jejich profilové fotografie ve skupinách</string>

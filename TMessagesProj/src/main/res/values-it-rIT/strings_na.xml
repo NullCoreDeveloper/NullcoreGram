@@ -24,7 +24,7 @@
     <string name="CodeSyntaxHighlight">Evidenziazione sintassi codice</string>
     <string name="CreateMono">Crea Monospace</string>
     <string name="CreateMonoLanguage">Lingua del codice</string>
-    <string name="CodeSyntaxHighlightDetails">Grazie a prismjs e Nekogram</string>
+    <string name="CodeSyntaxHighlightDetails">Grazie a prismjs e NullcoreGram</string>
     <string name="UseSystemUnlock">Passcode Sblocca usa il sistema ui</string>
     <string name="CopyPhoto">Copia Foto</string>
     <string name="PhotoCopied">Foto copiata negli appunti</string>
@@ -77,7 +77,7 @@
     <string name="IconDecoration">Decorazione Icona</string>
     <string name="NotificationIcon">Icona Notifica</string>
     <string name="Official">Ufficiale</string>
-    <string name="Nekogram">Nekogram</string>
+    <string name="NullcoreGram">NullcoreGram</string>
     <string name="HalloWeen">HalloWeen</string>
     <string name="ShowOnlineStatus">Mostra Stato Online</string>
     <string name="ShowOnlineStatusNotice">Mostra lo stato online di altre persone accanto alla foto del loro profilo in gruppi</string>

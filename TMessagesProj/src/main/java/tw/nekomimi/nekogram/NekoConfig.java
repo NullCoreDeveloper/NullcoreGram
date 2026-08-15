@@ -118,7 +118,7 @@ public class NekoConfig {
     public static ConfigItem showIdAndDc = addConfig("ShowIdAndDc", configTypeBool, false);
 
     public static ConfigItem cachePath = addConfig("cache_path", configTypeString, "");
-    public static ConfigItem customSavePath = addConfig("customSavePath", configTypeString, "Nagram");
+    public static ConfigItem customSavePath = addConfig("customSavePath", configTypeString, "NullcoreGram");
 
     public static ConfigItem translationProvider = addConfig("translationProvider", configTypeInt, 1);
     public static ConfigItem translateToLang = addConfig("TransToLang", configTypeString, ""); // "" -> translate to current language (MessageTrans.kt & Translator.kt)

@@ -1,13 +1,13 @@
-# Nagram
+# NullcoreGram
 
-Nagram is a third-party Telegram client based on [NekoX](https://github.com/NekoX-Dev/NekoX) with some modifications.
+NullcoreGram is a third-party Telegram client based on [NekoX](https://github.com/NekoX-Dev/NekoX) with some modifications.
 
 - Official Site: <https://nextalone.xyz>
 - Telegram Update Channel: <https://t.me/nagram_channel>
 - Releases: <https://github.com/NextAlone/Nagram/releases>
 - Issues here: <https://github.com/NextAlone/Nagram/issues>
 
-## Additional feature over Nagram
+## Additional feature over NullcoreGram
 
 1. Nice icon (thanks to MaitungTM)
 2. Combine message
@@ -194,7 +194,7 @@ Then, use base64 to encode the above.
 
 ## FAQ
 
-#### What is the differences between Nagram, NekoX and Nekogram?
+#### What is the differences between NullcoreGram, NekoX and Nekogram?
 
 Developed by different developers, read the feature list above to understand the differences.
 
@@ -214,9 +214,9 @@ If you experience a *crash*, you also need to click on the version number at the
 
 ## Localization
 
-Nagram is forked from Telegram, thus most locales follows the translations of Telegram for Android, checkout <https://translations.telegram.org/en/android/>.
+NullcoreGram is forked from Telegram, thus most locales follows the translations of Telegram for Android, checkout <https://translations.telegram.org/en/android/>.
 
-Is Nagram not in your language, or the translation is incorrect or incomplete? Get involved in the translations on our [Weblate](https://xtaolabs.crowdin.com/nagram).
+Is NullcoreGram not in your language, or the translation is incorrect or incomplete? Get involved in the translations on our [Weblate](https://xtaolabs.crowdin.com/nagram).
 
 [![Crowdin](https://badges.crowdin.net/e/156df3a631d257cc6b57301566d545fb/localized.svg)](https://xtaolabs.crowdin.com/nagram)
 

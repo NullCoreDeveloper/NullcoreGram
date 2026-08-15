@@ -267,7 +267,7 @@
     <string name="hideSponsoredMessage">Ocultar mensagens patrocinadas</string>
     <string name="rememberAllBackMessages">Lembrar de todas as respostas clicadas</string>
     <string name="AutoCheckUpdatePreview">Prévia (Instável)</string>
-    <string name="AppUpdateNekoX">Atualizar Nekogram X</string>
+    <string name="AppUpdateNekoX">Atualizar NullcoreGram X</string>
     <string name="NekoXUpdateTranslationHint">Toque para traduzir o histórico de alterações</string>
     <string name="channelAlias">Apelidar canal</string>
     <string name="channelAliasDetails">Exige que \"rotular utilizador do canal\" esteja ativado.</string>

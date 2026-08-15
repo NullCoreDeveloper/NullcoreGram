@@ -20,11 +20,11 @@
     <string name="SendReactions">Verstuur reacties</string>
     <string name="ShowReactions">Toon reacties</string>
     <string name="CustomTitle">Aangepaste titel</string>
-    <string name="CustomTitleHint">Laat leeg om Nagram te gebruiken</string>
+    <string name="CustomTitleHint">Laat leeg om NullcoreGram te gebruiken</string>
     <string name="CodeSyntaxHighlight">Syntaxis code benadrukken</string>
     <string name="CreateMono">Maak Monospace</string>
     <string name="CreateMonoLanguage">Taal code</string>
-    <string name="CodeSyntaxHighlightDetails">Dankzij prismjs en Nekogram</string>
+    <string name="CodeSyntaxHighlightDetails">Dankzij prismjs en NullcoreGram</string>
     <string name="UseSystemUnlock">Wachtwoord voor ontgrendelen systeem ui</string>
     <string name="CopyPhoto">Foto kopiëren</string>
     <string name="PhotoCopied">Foto gekopieerd naar Klembord</string>
@@ -77,7 +77,7 @@
     <string name="IconDecoration">Pictogram decoratie</string>
     <string name="NotificationIcon">Notificatie icoon</string>
     <string name="Official">Officiële</string>
-    <string name="Nekogram">Nekogram</string>
+    <string name="NullcoreGram">NullcoreGram</string>
     <string name="HalloWeen">HalloWeen</string>
     <string name="ShowOnlineStatus">Online status weergeven</string>
     <string name="ShowOnlineStatusNotice">Toon de onlinestatus van andere mensen naast hun profielfoto in groepen</string>

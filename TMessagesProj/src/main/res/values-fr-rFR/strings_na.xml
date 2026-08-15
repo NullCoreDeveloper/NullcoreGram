@@ -20,11 +20,11 @@
     <string name="SendReactions">Envoyer des réactions</string>
     <string name="ShowReactions">Afficher les réactions</string>
     <string name="CustomTitle">Titre personnalisé</string>
-    <string name="CustomTitleHint">Laisser vide pour utiliser Nagram</string>
+    <string name="CustomTitleHint">Laisser vide pour utiliser NullcoreGram</string>
     <string name="CodeSyntaxHighlight">Surbrillance de la syntaxe du code</string>
     <string name="CreateMono">Créer un Monospace</string>
     <string name="CreateMonoLanguage">Langue du code</string>
-    <string name="CodeSyntaxHighlightDetails">Merci a prismjs et à Nekogram</string>
+    <string name="CodeSyntaxHighlightDetails">Merci a prismjs et à NullcoreGram</string>
     <string name="UseSystemUnlock">Déverrouiller le mot de passe en utilisant le système ui</string>
     <string name="CopyPhoto">Copier la photo</string>
     <string name="PhotoCopied">Photo copiée dans le presse-papiers</string>
@@ -77,7 +77,7 @@
     <string name="IconDecoration">Décoration de l\'icône</string>
     <string name="NotificationIcon">Icône de notification</string>
     <string name="Official">Officiel</string>
-    <string name="Nekogram">Nekogram</string>
+    <string name="NullcoreGram">NullcoreGram</string>
     <string name="HalloWeen">HalloWeen</string>
     <string name="ShowOnlineStatus">Afficher le statut en ligne</string>
     <string name="ShowOnlineStatusNotice">Afficher le statut en ligne des autres personnes à côté de leur photo de profil dans les groupes</string>

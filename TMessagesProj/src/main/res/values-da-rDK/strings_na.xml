@@ -20,11 +20,11 @@
     <string name="SendReactions">Send Reaktioner</string>
     <string name="ShowReactions">Vis Reaktioner</string>
     <string name="CustomTitle">Brugerdefineret Titel</string>
-    <string name="CustomTitleHint">Lad feltet stå tomt for at bruge Nagram</string>
+    <string name="CustomTitleHint">Lad feltet stå tomt for at bruge NullcoreGram</string>
     <string name="CodeSyntaxHighlight">Kode syntaksfremhævning</string>
     <string name="CreateMono">Opret Monospace</string>
     <string name="CreateMonoLanguage">Kode sprog</string>
-    <string name="CodeSyntaxHighlightDetails">Tak til prismjs og Nekogram</string>
+    <string name="CodeSyntaxHighlightDetails">Tak til prismjs og NullcoreGram</string>
     <string name="UseSystemUnlock">Passcode Unlock use system ui</string>
     <string name="CopyPhoto">Kopiér Foto</string>
     <string name="PhotoCopied">Foto kopieret til udklipsholder</string>
@@ -77,7 +77,7 @@
     <string name="IconDecoration">Ikon Dekoration</string>
     <string name="NotificationIcon">Notifikations Ikon</string>
     <string name="Official">Officiel</string>
-    <string name="Nekogram">Nekogram</string>
+    <string name="NullcoreGram">NullcoreGram</string>
     <string name="HalloWeen">HalloWeen</string>
     <string name="ShowOnlineStatus">Vis Online Status</string>
     <string name="ShowOnlineStatusNotice">Vis andre personers online-status ved siden af deres profilfoto i grupper</string>
