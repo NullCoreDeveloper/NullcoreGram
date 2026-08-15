@@ -34,6 +34,9 @@ public class NekoConfig {
     public static boolean sendReadStoryPackets;
     public static boolean markReadAfterSend;
     public static boolean showGhostToggleInDrawer;
+    public static boolean saveDeletedMessages;
+    public static boolean saveTtlMedia;
+    public static boolean saveEditedMessages;
     public static final String channelAliasPrefix = "channelAliasPrefix_";
 
     private static boolean configLoaded = false;
@@ -281,6 +284,11 @@ public class NekoConfig {
             markReadAfterSend = preferences.getBoolean("markReadAfterSend", true);
             // ~ Ghost other options
             showGhostToggleInDrawer = preferences.getBoolean("showGhostToggleInDrawer", false);
+            
+            // ~ AyuGram features
+            saveDeletedMessages = preferences.getBoolean("saveDeletedMessages", false);
+            saveTtlMedia = preferences.getBoolean("saveTtlMedia", false);
+            saveEditedMessages = preferences.getBoolean("saveEditedMessages", false);
 
             NkmrConfig.compact();
             configLoaded = true;

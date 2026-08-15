@@ -20073,6 +20073,9 @@ public class MessagesController extends BaseController implements NotificationCe
                 for (int a = 0, size2 = messageObjects.size(); a < size2; a++) {
                     messagesRes.messages.add(messageObjects.get(a).messageOwner);
                 }
+                if (tw.nekomimi.nekogram.NekoConfig.saveEditedMessages) {
+                    getMessagesStorage().saveAyuEditedMessages(editingMessages.keyAt(b), messagesRes.messages);
+                }
                 getMessagesStorage().putMessages(messagesRes, editingMessages.keyAt(b), -2, 0, false, 0, 0);
             }
             LongSparseArray<ArrayList<MessageObject>> editingMessagesFinal = editingMessages;
@@ -21468,11 +21471,121 @@ public class MessagesController extends BaseController implements NotificationCe
         }
         if (deletedMessages != null) {
             for (int a = 0, size = deletedMessages.size(); a < size; a++) {
-                long key = deletedMessages.keyAt(a);
-                ArrayList<Integer> arrayList = deletedMessages.valueAt(a);
+                final long key = deletedMessages.keyAt(a);
+                final ArrayList<Integer> arrayList = deletedMessages.valueAt(a);
+                final boolean saveDeleted = tw.nekomimi.nekogram.NekoConfig.saveDeletedMessages;
+                final boolean saveTtl = tw.nekomimi.nekogram.NekoConfig.saveTtlMedia;
+
+                if (!saveDeleted && !saveTtl) {
+                    getMessagesStorage().getStorageQueue().postRunnable(() -> {
+                        ArrayList<Long> dialogIds = getMessagesStorage().markMessagesAsDeleted(key, arrayList, false, true, 0, 0);
+                        getMessagesStorage().updateDialogsWithDeletedMessages(key, -key, arrayList, dialogIds);
+                    });
+                    continue;
+                }
+
                 getMessagesStorage().getStorageQueue().postRunnable(() -> {
-                    ArrayList<Long> dialogIds = getMessagesStorage().markMessagesAsDeleted(key, arrayList, false, true, 0, 0);
-                    getMessagesStorage().updateDialogsWithDeletedMessages(key, -key, arrayList, dialogIds);
+                    ArrayList<Integer> toGhost = new ArrayList<>();
+                    ArrayList<Integer> toDelete = new ArrayList<>();
+
+                    if (saveDeleted) {
+                        toGhost.addAll(arrayList);
+                    } else {
+                        try {
+                            String ids = TextUtils.join(",", arrayList);
+                            SQLiteCursor cursor = getMessagesStorage().getDatabase().queryFinalized(String.format(Locale.US, "SELECT mid, data FROM messages_v2 WHERE mid IN(%s) AND uid = %d", ids, key));
+                            while (cursor.next()) {
+                                int mid = cursor.intValue(0);
+                                NativeByteBuffer data = cursor.byteBufferValue(1);
+                                boolean isTtl = false;
+                                if (data != null) {
+                                    try {
+                                        TLRPC.Message message = TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
+                                        if (message != null && message.ttl != 0 && message.media != null && !(message.media instanceof TLRPC.TL_messageMediaWebPage)) {
+                                            isTtl = true;
+                                        }
+                                    } catch (Exception ignore) {}
+                                    data.reuse();
+                                }
+                                if (isTtl) {
+                                    toGhost.add(mid);
+                                } else {
+                                    toDelete.add(mid);
+                                }
+                            }
+                            cursor.dispose();
+                        } catch (Exception e) {
+                            FileLog.e(e);
+                            toDelete.addAll(arrayList);
+                        }
+                    }
+
+                    if (!toDelete.isEmpty()) {
+                        ArrayList<Long> dialogIds = getMessagesStorage().markMessagesAsDeleted(key, toDelete, false, true, 0, 0);
+                        getMessagesStorage().updateDialogsWithDeletedMessages(key, -key, toDelete, dialogIds);
+                    }
+
+                    if (!toGhost.isEmpty()) {
+                        for (int i = 0; i < toGhost.size(); i++) {
+                            final int msgId = toGhost.get(i);
+                            try {
+                                SQLiteCursor cursor = getMessagesStorage().getDatabase().queryFinalized(String.format(Locale.US, "SELECT data, custom_params FROM messages_v2 WHERE mid = %d AND uid = %d LIMIT 1", msgId, key));
+                                if (cursor.next()) {
+                                    NativeByteBuffer data = cursor.byteBufferValue(0);
+                                    if (data != null) {
+                                        TLRPC.Message message = TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
+                                        message.readAttachPath(data, getUserConfig().clientUserId);
+                                        data.reuse();
+                                        MessageCustomParamsHelper.readLocalParams(message, cursor.byteBufferValue(1));
+                                        
+                                        message.isAyuDeleted = true;
+                                        boolean changedTtl = false;
+                                        if (saveTtl && message.ttl != 0 && message.media != null && !(message.media instanceof TLRPC.TL_messageMediaWebPage)) {
+                                            message.ttl = 0;
+                                            changedTtl = true;
+                                        }
+                                        
+                                        getMessagesStorage().updateMessageCustomParams(key, message);
+                                        
+                                        if (changedTtl) {
+                                            NativeByteBuffer newData = new NativeByteBuffer(message.getObjectSize());
+                                            message.serializeToStream(newData);
+                                            SQLitePreparedStatement state = getMessagesStorage().getDatabase().executeFast("UPDATE messages_v2 SET data = ?, ttl = 0 WHERE mid = ? AND uid = ?");
+                                            state.requery();
+                                            state.bindByteBuffer(1, newData);
+                                            state.bindInteger(2, msgId);
+                                            state.bindLong(3, key);
+                                            state.step();
+                                            state.dispose();
+                                            newData.reuse();
+                                        }
+                                        
+                                        final boolean finalChangedTtl = changedTtl;
+                                        AndroidUtilities.runOnUIThread(() -> {
+                                            MessageObject obj = dialogMessagesByIds.get(msgId);
+                                            if (obj != null) {
+                                                obj.isAyuDeleted = true;
+                                                if (obj.messageOwner != null) {
+                                                    obj.messageOwner.isAyuDeleted = true;
+                                                    if (finalChangedTtl) {
+                                                        obj.messageOwner.ttl = 0;
+                                                        obj.generateThumbs(false); // Recalculate thumbs without blur
+                                                    }
+                                                }
+                                            }
+                                        });
+                                    }
+                                }
+                                cursor.dispose();
+                            } catch (Exception e) {
+                                FileLog.e(e);
+                            }
+                        }
+                        
+                        AndroidUtilities.runOnUIThread(() -> {
+                            getNotificationCenter().postNotificationName(NotificationCenter.updateInterfaces, UPDATE_MASK_ALL);
+                        });
+                    }
                 });
             }
         }

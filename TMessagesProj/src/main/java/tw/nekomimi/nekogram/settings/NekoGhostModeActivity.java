@@ -35,6 +35,9 @@ public class NekoGhostModeActivity extends BaseNekoSettingsActivity {
     private int sendReadStoryPacketsRow;
     private int sendOfflineAfterOnlineRow;
     private int markReadAfterSendRow;
+    private int saveDeletedMessagesRow;
+    private int saveTtlMediaRow;
+    private int saveEditedMessagesRow;
 
     private int ghostDividerRow;
     private int DrawerHeaderRow;
@@ -61,6 +64,9 @@ public class NekoGhostModeActivity extends BaseNekoSettingsActivity {
             sendOfflineAfterOnlineRow = -1;
         }
         markReadAfterSendRow = addRow();
+        saveDeletedMessagesRow = addRow();
+        saveTtlMediaRow = addRow();
+        saveEditedMessagesRow = addRow();
         ghostDividerRow = addRow();
         DrawerHeaderRow = addRow();
         showGhostToggleInDrawerRow = addRow();
@@ -128,6 +134,15 @@ public class NekoGhostModeActivity extends BaseNekoSettingsActivity {
             NekoConfig.putBoolean("markReadAfterSend", NekoConfig.markReadAfterSend ^= true);
             ((TextCheckCell) view).setChecked(NekoConfig.markReadAfterSend);
             AyuGhostUtils.setAllowReadPacket(false, -1);
+        } else if (position == saveDeletedMessagesRow) {
+            NekoConfig.putBoolean("saveDeletedMessages", NekoConfig.saveDeletedMessages ^= true);
+            ((TextCheckCell) view).setChecked(NekoConfig.saveDeletedMessages);
+        } else if (position == saveTtlMediaRow) {
+            NekoConfig.putBoolean("saveTtlMedia", NekoConfig.saveTtlMedia ^= true);
+            ((TextCheckCell) view).setChecked(NekoConfig.saveTtlMedia);
+        } else if (position == saveEditedMessagesRow) {
+            NekoConfig.putBoolean("saveEditedMessages", NekoConfig.saveEditedMessages ^= true);
+            ((TextCheckCell) view).setChecked(NekoConfig.saveEditedMessages);
         } else if (position == showGhostToggleInDrawerRow) {
             NekoConfig.putBoolean("showGhostToggleInDrawer", NekoConfig.showGhostToggleInDrawer ^= true);
             ((TextCheckCell) view).setChecked(NekoConfig.showGhostToggleInDrawer);
@@ -182,6 +197,12 @@ public class NekoGhostModeActivity extends BaseNekoSettingsActivity {
                     textCheckCell.setEnabled(true, null);
                     if (position == markReadAfterSendRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString(R.string.MarkReadAfterAction), NekoConfig.markReadAfterSend, divider);
+                    } else if (position == saveDeletedMessagesRow) {
+                        textCheckCell.setTextAndCheck("Save Deleted Messages", NekoConfig.saveDeletedMessages, divider);
+                    } else if (position == saveTtlMediaRow) {
+                        textCheckCell.setTextAndCheck("Save TTL Media", NekoConfig.saveTtlMedia, divider);
+                    } else if (position == saveEditedMessagesRow) {
+                        textCheckCell.setTextAndCheck("Save Edited Messages", NekoConfig.saveEditedMessages, divider);
                     } else if (position == showGhostToggleInDrawerRow) {
                         textCheckCell.setTextAndCheck(LocaleController.getString(R.string.GhostMode), NekoConfig.showGhostToggleInDrawer, divider);
                     }
@@ -231,7 +252,7 @@ public class NekoGhostModeActivity extends BaseNekoSettingsActivity {
             if (position >= sendReadMessagePacketsRow && position <= sendOfflineAfterOnlineRow) {
                 return TYPE_CHECKBOX2;
             }
-            if (position == markReadAfterSendRow || position == showGhostToggleInDrawerRow) {
+            if (position == markReadAfterSendRow || position == saveDeletedMessagesRow || position == saveTtlMediaRow || position == saveEditedMessagesRow || position == showGhostToggleInDrawerRow) {
                 return TYPE_CHECK;
             }
             return super.getItemViewType(position);
