@@ -18563,6 +18563,16 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         } else {
             currentTimeString = timeString;
         }
+        if (currentMessageObject.isAyuDeleted) {
+            SpannableStringBuilder span = new SpannableStringBuilder(currentTimeString);
+            span.append(" 👻");
+            span.setSpan(new android.text.style.ForegroundColorSpan(Theme.getColor(Theme.key_text_RedRegular)), 0, span.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            currentTimeString = span;
+        } else if (edited && NekoConfig.saveEditedMessages.Bool()) {
+            SpannableStringBuilder span = new SpannableStringBuilder(currentTimeString);
+            span.setSpan(new android.text.style.ForegroundColorSpan(0xFFFB8C00), 0, span.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            currentTimeString = span;
+        }
         if (currentMessageObject.isStakedDice()) {
             currentTimeString = TextUtils.concat("💎", StarsIntroActivity.formatTON(currentMessageObject.getStakedDiceAmount()), "  ", currentTimeString);
             currentTimeString = StarsIntroActivity.replaceDiamond(currentTimeString, 0.55f, null, 0, dp(-.33f), 1.05f);

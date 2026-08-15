@@ -385,6 +385,12 @@ public class MessagesStorage extends BaseController {
                     }
                 }
             }
+            try {
+                database.executeFast("CREATE TABLE IF NOT EXISTS nagram_deleted_messages(mid INTEGER, uid INTEGER, PRIMARY KEY(mid, uid))").stepThis().dispose();
+                database.executeFast("CREATE TABLE IF NOT EXISTS nagram_message_history(mid INTEGER, uid INTEGER, old_data BLOB, edit_date INTEGER)").stepThis().dispose();
+            } catch (Exception e) {
+                FileLog.e(e);
+            }
             databaseCreated = true;
         } catch (Exception e) {
             FileLog.e(e);
@@ -2164,6 +2170,11 @@ public class MessagesStorage extends BaseController {
                             "SELECT mid FROM messages_topics WHERE uid = %d AND topic_id = %d" +
                             ")",
                     dialogId, dialogId, topicId)).stepThis().dispose();
+                database.executeFast(String.format(Locale.US,
+                    "DELETE FROM nagram_message_history WHERE uid = %d AND mid IN (" +
+                            "SELECT mid FROM messages_topics WHERE uid = %d AND topic_id = %d" +
+                            ")",
+                    dialogId, dialogId, topicId)).stepThis().dispose();
                 database.executeFast(String.format(Locale.US, "DELETE FROM messages_topics WHERE uid = %d AND topic_id = %d", dialogId, topicId)).stepThis().dispose();
             } catch (SQLiteException e) {
                 e.printStackTrace();
@@ -2179,6 +2190,11 @@ public class MessagesStorage extends BaseController {
                 try {
                     database.executeFast(String.format(Locale.US,
                         "DELETE FROM messages_v2 WHERE uid = %d AND mid IN (" +
+                                "SELECT mid FROM messages_topics WHERE uid = %d AND topic_id IN (%s)" +
+                                ")",
+                        dialogId, dialogId, topics)).stepThis().dispose();
+                    database.executeFast(String.format(Locale.US,
+                        "DELETE FROM nagram_message_history WHERE uid = %d AND mid IN (" +
                                 "SELECT mid FROM messages_topics WHERE uid = %d AND topic_id IN (%s)" +
                                 ")",
                         dialogId, dialogId, topics)).stepThis().dispose();
@@ -4457,6 +4473,7 @@ public class MessagesStorage extends BaseController {
                     database.executeFast("DELETE FROM chat_pinned_count WHERE uid = " + did).stepThis().dispose();
                     database.executeFast("DELETE FROM channel_users_v2 WHERE did = " + did).stepThis().dispose();
                     database.executeFast("DELETE FROM search_recent WHERE did = " + did).stepThis().dispose();
+                    database.executeFast("DELETE FROM nagram_message_history WHERE uid = " + did).stepThis().dispose();
                     if (!DialogObject.isEncryptedDialog(did)) {
                         if (DialogObject.isChatDialog(did)) {
                             database.executeFast("DELETE FROM chat_settings_v2 WHERE uid = " + (-did)).stepThis().dispose();
@@ -4493,6 +4510,7 @@ public class MessagesStorage extends BaseController {
 
                         database.executeFast("DELETE FROM messages_v2 WHERE uid = " + did + " AND mid != " + last_mid_i + " AND mid != " + last_mid).stepThis().dispose();
                         database.executeFast("DELETE FROM messages_topics WHERE uid = " + did + " AND mid != " + last_mid_i + " AND mid != " + last_mid).stepThis().dispose();
+                        database.executeFast("DELETE FROM nagram_message_history WHERE uid = " + did + " AND mid != " + last_mid_i + " AND mid != " + last_mid).stepThis().dispose();
                         database.executeFast("DELETE FROM messages_holes WHERE uid = " + did).stepThis().dispose();
                         database.executeFast("DELETE FROM bot_keyboard WHERE uid = " + did).stepThis().dispose();
                         database.executeFast("DELETE FROM bot_keyboard_topics WHERE uid = " + did).stepThis().dispose();
@@ -4520,6 +4538,7 @@ public class MessagesStorage extends BaseController {
                 database.executeFast("UPDATE dialogs SET unread_count = 0, unread_count_i = 0 WHERE did = " + did).stepThis().dispose();
                 database.executeFast("DELETE FROM messages_v2 WHERE uid = " + did).stepThis().dispose();
                 database.executeFast("DELETE FROM messages_topics WHERE uid = " + did).stepThis().dispose();
+                database.executeFast("DELETE FROM nagram_message_history WHERE uid = " + did).stepThis().dispose();
                 database.executeFast("DELETE FROM bot_keyboard WHERE uid = " + did).stepThis().dispose();
                 database.executeFast("DELETE FROM bot_keyboard_topics WHERE uid = " + did).stepThis().dispose();
                 database.executeFast("DELETE FROM media_counts_v2 WHERE uid = " + did).stepThis().dispose();
@@ -4634,6 +4653,7 @@ public class MessagesStorage extends BaseController {
                 database.executeFast("DELETE FROM chat_pinned_v2 WHERE uid IN " + ids).stepThis().dispose();
                 database.executeFast("DELETE FROM dialogs WHERE did IN " + ids).stepThis().dispose();
                 database.executeFast("DELETE FROM messages_v2 WHERE uid IN " + ids).stepThis().dispose();
+                database.executeFast("DELETE FROM nagram_message_history WHERE uid IN " + ids).stepThis().dispose();
                 database.executeFast("DELETE FROM polls_v2 WHERE 1").stepThis().dispose();
                 database.executeFast("DELETE FROM bot_keyboard WHERE uid IN " + ids).stepThis().dispose();
                 database.executeFast("DELETE FROM bot_keyboard_topics WHERE uid IN " + ids).stepThis().dispose();
@@ -8628,6 +8648,7 @@ public class MessagesStorage extends BaseController {
                 if (!toDelete.isEmpty()) {
                     for (TLRPC.Message msg : toDelete) {
                         database.executeFast("DELETE FROM messages_v2 WHERE uid = " + msg.dialog_id + " AND mid = " + msg.id).stepThis().dispose();
+                        database.executeFast("DELETE FROM nagram_message_history WHERE uid = " + msg.dialog_id + " AND mid = " + msg.id).stepThis().dispose();
                     }
                 }
 
@@ -10307,6 +10328,7 @@ public class MessagesStorage extends BaseController {
                 if (cleanup && chat.in_seq_no != 0) {
                     long did = DialogObject.getEncryptedChatId(chat.id);
                     database.executeFast(String.format(Locale.US, "DELETE FROM messages_v2 WHERE mid IN (SELECT m.mid FROM messages_v2 as m LEFT JOIN messages_seq as s ON m.mid = s.mid WHERE m.uid = %d AND m.date = 0 AND m.mid < 0 AND s.seq_out <= %d) AND uid = %d", did, chat.in_seq_no, did)).stepThis().dispose();
+                    database.executeFast(String.format(Locale.US, "DELETE FROM nagram_message_history WHERE mid IN (SELECT m.mid FROM messages_v2 as m LEFT JOIN messages_seq as s ON m.mid = s.mid WHERE m.uid = %d AND m.date = 0 AND m.mid < 0 AND s.seq_out <= %d) AND uid = %d", did, chat.in_seq_no, did)).stepThis().dispose();
                 }
             } catch (Exception e) {
                 checkSQLException(e);
@@ -11319,6 +11341,7 @@ public class MessagesStorage extends BaseController {
                 database.executeFast("DELETE FROM chat_pinned_count WHERE uid = " + did).stepThis().dispose();
                 database.executeFast("DELETE FROM chat_pinned_v2 WHERE uid = " + did).stepThis().dispose();
                 database.executeFast("DELETE FROM messages_v2 WHERE uid = " + did).stepThis().dispose();
+                database.executeFast("DELETE FROM nagram_message_history WHERE uid = " + did).stepThis().dispose();
                 database.executeFast("DELETE FROM bot_keyboard WHERE uid = " + did).stepThis().dispose();
                 database.executeFast("DELETE FROM bot_keyboard_topics WHERE uid = " + did).stepThis().dispose();
                 database.executeFast("UPDATE media_counts_v2 SET old = 1 WHERE uid = " + did).stepThis().dispose();
@@ -13581,6 +13604,7 @@ public class MessagesStorage extends BaseController {
                 } catch (Exception e) {
                     try {
                         database.executeFast(String.format(Locale.US, "DELETE FROM messages_v2 WHERE mid = %d AND uid = %d", oldMessageId, did)).stepThis().dispose();
+                        database.executeFast(String.format(Locale.US, "DELETE FROM nagram_message_history WHERE mid = %d AND uid = %d", oldMessageId, did)).stepThis().dispose();
                         database.executeFast(String.format(Locale.US, "DELETE FROM messages_seq WHERE mid = %d", oldMessageId)).stepThis().dispose();
                         database.executeFast(String.format(Locale.US, "DELETE FROM messages_topics WHERE mid = %d AND uid = %d", oldMessageId, did)).stepThis().dispose();
                     } catch (Exception e2) {
@@ -14079,6 +14103,26 @@ public class MessagesStorage extends BaseController {
         AndroidUtilities.runOnUIThread(() -> getNotificationCenter().postNotificationName(NotificationCenter.quickRepliesUpdated));
     }
 
+    public void saveAyuDeletedMessages(long channelId, ArrayList<Integer> messages) {
+        if (messages == null || messages.isEmpty()) return;
+        storageQueue.postRunnable(() -> {
+            try {
+                database.beginTransaction();
+                SQLitePreparedStatement state = database.executeFast("INSERT OR REPLACE INTO nagram_deleted_messages VALUES(?, ?)");
+                for (int i = 0; i < messages.size(); i++) {
+                    state.requery();
+                    state.bindInteger(1, messages.get(i));
+                    state.bindLong(2, channelId == 0 ? getUserConfig().getClientUserId() : channelId);
+                    state.step();
+                }
+                state.dispose();
+                database.commitTransaction();
+            } catch (Exception e) {
+                FileLog.e(e);
+            }
+        });
+    }
+
     private ArrayList<Long> markMessagesAsDeletedInternal(long dialogId, ArrayList<Integer> messages, boolean deleteFiles, int mode, int threadMessageId) {
         SQLiteCursor cursor = null;
         SQLitePreparedStatement state = null;
@@ -14447,6 +14491,7 @@ public class MessagesStorage extends BaseController {
                     }
                     database.executeFast(String.format(Locale.US, "DELETE FROM messages_v2 WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
                     database.executeFast(String.format(Locale.US, "DELETE FROM messages_topics WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
+                    database.executeFast(String.format(Locale.US, "DELETE FROM nagram_message_history WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
                     database.executeFast(String.format(Locale.US, "DELETE FROM polls_v2 WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
                     database.executeFast(String.format(Locale.US, "DELETE FROM bot_keyboard WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
                     database.executeFast(String.format(Locale.US, "DELETE FROM bot_keyboard_topics WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
@@ -14883,6 +14928,59 @@ public class MessagesStorage extends BaseController {
         return null;
     }
 
+    public void saveAyuEditedMessages(long dialogId, ArrayList<TLRPC.Message> messages) {
+        storageQueue.postRunnable(() -> {
+            try {
+                int currentTime = getConnectionsManager().getCurrentTime();
+                for (int i = 0; i < messages.size(); i++) {
+                    TLRPC.Message newMessage = messages.get(i);
+                    SQLiteCursor cursor = database.queryFinalized(String.format(Locale.US, "SELECT data FROM messages_v2 WHERE mid = %d AND uid = %d", newMessage.id, dialogId));
+                    if (cursor.next()) {
+                        NativeByteBuffer data = cursor.byteBufferValue(0);
+                        if (data != null) {
+                            SQLitePreparedStatement state = database.executeFast("INSERT INTO nagram_message_history VALUES(?, ?, ?, ?)");
+                            state.bindInteger(1, newMessage.id);
+                            state.bindLong(2, dialogId);
+                            state.bindByteBuffer(3, data);
+                            state.bindInteger(4, currentTime);
+                            state.step();
+                            state.dispose();
+                            data.reuse();
+                        }
+                    }
+                    cursor.dispose();
+                }
+            } catch (Exception e) {
+                FileLog.e(e);
+            }
+        });
+    }
+
+    public void getAyuEditHistory(long dialogId, int messageId, org.telegram.messenger.Utilities.Callback<ArrayList<TLRPC.Message>> callback) {
+        storageQueue.postRunnable(() -> {
+            ArrayList<TLRPC.Message> history = new ArrayList<>();
+            try {
+                SQLiteCursor cursor = database.queryFinalized(String.format(Locale.US, "SELECT old_data, edit_date FROM nagram_message_history WHERE mid = %d AND uid = %d ORDER BY edit_date DESC", messageId, dialogId));
+                while (cursor.next()) {
+                    NativeByteBuffer data = cursor.byteBufferValue(0);
+                    if (data != null) {
+                        TLRPC.Message message = TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
+                        if (message != null) {
+                            message.readAttachPath(data, getUserConfig().getClientUserId());
+                            message.edit_date = cursor.intValue(1);
+                            history.add(message);
+                        }
+                        data.reuse();
+                    }
+                }
+                cursor.dispose();
+            } catch (Exception e) {
+                FileLog.e(e);
+            }
+            AndroidUtilities.runOnUIThread(() -> callback.run(history));
+        });
+    }
+
     private ArrayList<Long> markMessagesAsDeletedInternal(long channelId, int mid, boolean deleteFiles) {
         SQLiteCursor cursor = null;
         SQLitePreparedStatement state = null;
@@ -14990,6 +15088,7 @@ public class MessagesStorage extends BaseController {
 
             database.executeFast(String.format(Locale.US, "DELETE FROM messages_v2 WHERE uid = %d AND mid <= %d", -channelId, mid)).stepThis().dispose();
             database.executeFast(String.format(Locale.US, "DELETE FROM messages_topics WHERE uid = %d AND mid <= %d", -channelId, mid)).stepThis().dispose();
+            database.executeFast(String.format(Locale.US, "DELETE FROM nagram_message_history WHERE uid = %d AND mid <= %d", -channelId, mid)).stepThis().dispose();
             database.executeFast(String.format(Locale.US, "DELETE FROM media_v4 WHERE uid = %d AND mid <= %d", -channelId, mid)).stepThis().dispose();
             database.executeFast(String.format(Locale.US, "UPDATE media_counts_v2 SET old = 1 WHERE uid = %d", -channelId)).stepThis().dispose();
             database.executeFast(String.format(Locale.US, "UPDATE media_counts_topics SET old = 1 WHERE uid = %d", -channelId)).stepThis().dispose();

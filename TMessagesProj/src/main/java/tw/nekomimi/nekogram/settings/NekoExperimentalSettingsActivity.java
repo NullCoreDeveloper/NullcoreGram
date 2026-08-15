@@ -72,9 +72,6 @@ public class NekoExperimentalSettingsActivity extends BaseNekoXSettingsActivity 
 //    private final AbstractConfigCell useCustomEmojiRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.useCustomEmoji));
     private final AbstractConfigCell localQuoteColorRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getUseLocalQuoteColor()));
     private final AbstractConfigCell channelAliasRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.channelAlias));
-    private final AbstractConfigCell externalGhostModeRow = cellGroup.appendCell(new ConfigCellText("GhostMode", () -> {
-        presentFragment(new NekoGhostModeActivity());
-    }));
     private final AbstractConfigCell customCustomChannelLabelRow = cellGroup.appendCell(new ConfigCellTextInput(null, NaConfig.INSTANCE.getCustomChannelLabel(),
             null, null,
             (input) -> input.isEmpty() ? (String) NaConfig.INSTANCE.getCustomChannelLabel().defaultValue : input));
@@ -545,7 +542,6 @@ public class NekoExperimentalSettingsActivity extends BaseNekoXSettingsActivity 
         if (!NaConfig.INSTANCE.getShowHiddenFeature().Bool()) {
             cellGroup.rows.remove(localPremiumRow);
             cellGroup.rows.remove(localQuoteColorRow);
-            cellGroup.rows.remove(externalGhostModeRow);
             cellGroup.rows.remove(enhancedFileLoaderRow);
             cellGroup.rows.remove(disableFilteringRow);
             cellGroup.rows.remove(unlimitedFavedStickersRow);
@@ -567,7 +563,6 @@ public class NekoExperimentalSettingsActivity extends BaseNekoXSettingsActivity 
             cellGroup.rows.remove(dividerStory);
 
             NekoConfig.localPremium.setConfigBool(false);
-            NekoConfig.setGhostMode(false);
             NaConfig.INSTANCE.getForceCopy().setConfigBool(false);
             NaConfig.INSTANCE.getDisableFlagSecure().setConfigBool(false);
             NekoXConfig.disableFlagSecure = false;

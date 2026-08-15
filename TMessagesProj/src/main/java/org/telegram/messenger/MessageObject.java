@@ -256,6 +256,8 @@ public class MessageObject {
     public long pollLastCheckTime;
     public int wantedBotKeyboardWidth;
     public boolean attachPathExists;
+    
+    public boolean isAyuDeleted;
     public boolean mediaExists;
     public MediaController.PhotoEntry sendPreviewEntry;
     public boolean sendPreview;
@@ -1936,6 +1938,7 @@ public class MessageObject {
 
         currentAccount = accountNum;
         messageOwner = message;
+        isAyuDeleted = message != null && message.isAyuDeleted;
         replyMessageObject = replyToMessage;
         eventId = eid;
         wasUnread = !messageOwner.out && messageOwner.unread;

@@ -28,6 +28,7 @@ public class MessageCustomParamsHelper {
             message.translatedPoll == null &&
             message.translatedText == null &&
             message.translatedRichMessage == null &&
+            !message.isAyuDeleted &&
             message.errorAllowedPriceStars == 0 &&
             message.errorNewPriceStars == 0
         );
@@ -53,6 +54,7 @@ public class MessageCustomParamsHelper {
         toMessage.summaryText = fromMessage.summaryText;
         toMessage.translatedSummaryText = fromMessage.translatedSummaryText;
         toMessage.translatedSummaryLanguage = fromMessage.translatedSummaryLanguage;
+        toMessage.isAyuDeleted = fromMessage.isAyuDeleted;
     }
 
 
@@ -114,6 +116,7 @@ public class MessageCustomParamsHelper {
             flags = setFlag(flags, FLAG_12, message.translatedSummaryLanguage != null);
 
             flags = setFlag(flags, FLAG_13, message.translatedRichMessage != null);
+            flags = setFlag(flags, FLAG_14, message.isAyuDeleted);
         }
 
         @Override
@@ -121,6 +124,7 @@ public class MessageCustomParamsHelper {
             stream.writeInt32(VERSION);
             flags = message.voiceTranscriptionForce ? (flags | 2) : (flags &~ 2);
             flags = message.summarizedOpen ? (flags | 512) : (flags &~ 512);
+            flags = message.isAyuDeleted ? (flags | FLAG_14) : (flags &~ FLAG_14);
             stream.writeInt32(flags);
             if ((flags & 1) != 0) {
                 stream.writeString(message.voiceTranscription);
@@ -216,6 +220,7 @@ public class MessageCustomParamsHelper {
             if (hasFlag(flags, FLAG_13)) {
                 message.translatedRichMessage = TL_iv.RichMessage.TLdeserialize(stream, stream.readInt32(exception), exception);
             }
+            message.isAyuDeleted = hasFlag(flags, FLAG_14);
         }
 
     }

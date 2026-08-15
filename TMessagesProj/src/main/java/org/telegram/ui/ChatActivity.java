@@ -447,6 +447,7 @@ public class ChatActivity extends BaseFragment implements
     public final static int nkbtn_detail = 2012;
     public final static int nkbtn_deldlcache = 2013;
     public final static int nkbtn_view_history = 2014;
+    public final static int nkbtn_view_edit_history = 2038;
     public final static int nkbtn_repeat = 2015;
     public final static int nkbtn_stickerdl = 2016;
     private final static int nkbtn_unpin = 2017;
@@ -45736,6 +45737,57 @@ public class ChatActivity extends BaseFragment implements
                 showMessagesSearchListView(true);
                 break;
             }
+            case nkbtn_view_edit_history: {
+                if (selectedObject == null) return;
+                long did = selectedObject.getDialogId();
+                int mid = selectedObject.getId();
+                getMessagesStorage().getAyuEditHistory(did, mid, history -> {
+                    AndroidUtilities.runOnUIThread(() -> {
+                        if (history.isEmpty()) {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+                            builder.setTitle(LocaleController.getString("EditHistory", R.string.EditHistory));
+                            builder.setMessage(LocaleController.getString("NoEditHistory", R.string.NoEditHistory));
+                            builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), null);
+                            showDialog(builder.create());
+                            return;
+                        }
+
+                        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+                        builder.setTitle(LocaleController.getString("EditHistory", R.string.EditHistory));
+
+                        android.widget.ScrollView scrollView = new android.widget.ScrollView(getParentActivity());
+                        android.widget.LinearLayout linearLayout = new android.widget.LinearLayout(getParentActivity());
+                        linearLayout.setOrientation(android.widget.LinearLayout.VERTICAL);
+                        linearLayout.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(8), AndroidUtilities.dp(16), AndroidUtilities.dp(8));
+
+                        for (TLRPC.Message oldMsg : history) {
+                            android.widget.TextView dateView = new android.widget.TextView(getParentActivity());
+                            dateView.setTextSize(android.util.TypedValue.COMPLEX_UNIT_DIP, 13);
+                            dateView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText));
+                            dateView.setText(LocaleController.getInstance().formatterYearMax.format((long) oldMsg.edit_date * 1000));
+
+                            android.widget.TextView msgView = new android.widget.TextView(getParentActivity());
+                            msgView.setTextSize(android.util.TypedValue.COMPLEX_UNIT_DIP, 16);
+                            msgView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
+                            msgView.setText(oldMsg.message);
+                            msgView.setTextIsSelectable(true);
+
+                            linearLayout.addView(dateView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 8, 0, 2));
+                            linearLayout.addView(msgView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 8));
+
+                            android.view.View divider = new android.view.View(getParentActivity());
+                            divider.setBackgroundColor(Theme.getColor(Theme.key_divider));
+                            linearLayout.addView(divider, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 1, 0, 4, 0, 4));
+                        }
+
+                        scrollView.addView(linearLayout);
+                        builder.setView(scrollView);
+                        builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), null);
+                        showDialog(builder.create());
+                    });
+                });
+                break;
+            }
             case nkbtn_editAdmin: {
                 if (selectedParticipant == null) {
                     break;
@@ -48125,6 +48177,11 @@ public class ChatActivity extends BaseFragment implements
                         items.add(LocaleController.getString(R.string.ViewHistory));
                         options.add(nkbtn_view_history);
                         icons.add(R.drawable.menu_recent);
+                    }
+                    if (selectedObject != null && (selectedObject.messageOwner.flags & TLRPC.MESSAGE_FLAG_EDITED) != 0 && NekoConfig.saveEditedMessages.Bool()) {
+                        items.add(LocaleController.getString(R.string.ViewEditHistory));
+                        options.add(nkbtn_view_edit_history);
+                        icons.add(R.drawable.msg_edit);
                     }
                     MessageObject messageObject = getMessageForTranslate();
                     boolean docsWithMessages = false;
