@@ -11160,4 +11160,8 @@
     <string name="ArticleAIPrompt">Write a prompt...</string>
     <string name="ArticleAIGenerate">Generate</string>
     <string name="ArticleAIAddToPage">Add to Page</string>
+    <string name="EditHistory">Edit History</string>
+    <string name="NoEditHistory">No Edit History</string>
+    <string name="ViewEditHistory">View Edit History</string>
+    <string name="Nekogram">Nagram</string>
 </resources>

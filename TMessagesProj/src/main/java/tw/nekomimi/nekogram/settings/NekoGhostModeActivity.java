@@ -121,7 +121,7 @@ public class NekoGhostModeActivity extends BaseNekoSettingsActivity {
             @NonNull
             @Override
             public RecyclerView.ViewHolder onCreateViewHolder(@NonNull android.view.ViewGroup parent, int viewType) {
-                TextSettingsCell textCell = new TextSettingsCell(mContext);
+                TextSettingsCell textCell = new TextSettingsCell(getParentActivity());
                 textCell.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.WRAP_CONTENT));
                 return new RecyclerListView.Holder(textCell);
             }
@@ -292,7 +292,7 @@ public class NekoGhostModeActivity extends BaseNekoSettingsActivity {
                     }
                     checkBoxCell.setPad(1);
                     break;
-                case TYPE_TEXT_SETTINGS:
+                case TYPE_SETTINGS:
                     TextSettingsCell textSettingsCell = (TextSettingsCell) holder.itemView;
                     if (position == accountSelectorRow) {
                         TLRPC.User user = UserConfig.getInstance(selectedAccount).getCurrentUser();
@@ -306,7 +306,7 @@ public class NekoGhostModeActivity extends BaseNekoSettingsActivity {
         @Override
         public int getItemViewType(int position) {
             if (position == accountSelectorRow) {
-                return TYPE_TEXT_SETTINGS;
+                return TYPE_SETTINGS;
             }
             if (position == ghostDividerRow) {
                 return TYPE_SHADOW;

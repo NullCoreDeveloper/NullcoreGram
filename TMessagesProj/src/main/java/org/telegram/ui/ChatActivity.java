@@ -45764,7 +45764,7 @@ public class ChatActivity extends BaseFragment implements
                             android.widget.TextView dateView = new android.widget.TextView(getParentActivity());
                             dateView.setTextSize(android.util.TypedValue.COMPLEX_UNIT_DIP, 13);
                             dateView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText));
-                            dateView.setText(LocaleController.getInstance().formatterYearMax.format((long) oldMsg.edit_date * 1000));
+                            dateView.setText(LocaleController.getInstance().getFormatterYearMax().format((long) oldMsg.edit_date * 1000));
 
                             android.widget.TextView msgView = new android.widget.TextView(getParentActivity());
                             msgView.setTextSize(android.util.TypedValue.COMPLEX_UNIT_DIP, 16);
@@ -48178,8 +48178,8 @@ public class ChatActivity extends BaseFragment implements
                         options.add(nkbtn_view_history);
                         icons.add(R.drawable.menu_recent);
                     }
-                    if (selectedObject != null && (selectedObject.messageOwner.flags & TLRPC.MESSAGE_FLAG_EDITED) != 0 && NekoConfig.saveEditedMessages.Bool()) {
-                        items.add(LocaleController.getString(R.string.ViewEditHistory));
+                    if (selectedObject != null && (selectedObject.messageOwner.flags & TLRPC.MESSAGE_FLAG_EDITED) != 0 && tw.nekomimi.nekogram.utils.AyuGhostConfig.saveEditedMessages[currentAccount]) {
+                        items.add(LocaleController.getString("ViewEditHistory", R.string.ViewEditHistory));
                         options.add(nkbtn_view_edit_history);
                         icons.add(R.drawable.msg_edit);
                     }

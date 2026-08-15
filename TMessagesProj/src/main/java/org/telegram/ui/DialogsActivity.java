@@ -13943,8 +13943,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             args.putLong("user_id", UserConfig.getInstance(currentAccount).getClientUserId());
             presentFragment(new ChatActivity(args));
         });
-        io.addIf(NekoConfig.showGhostToggleInDrawer, R.drawable.icon_ghost, getString(R.string.GhostMode), () -> {
-            presentFragment(new NekoGhostModeActivity());
+        io.addIf(tw.nekomimi.nekogram.utils.AyuGhostConfig.showGhostToggleInDrawer[currentAccount], R.drawable.icon_ghost, getString(R.string.GhostMode), () -> {
+            presentFragment(new tw.nekomimi.nekogram.settings.NekoGhostModeActivity());
         });
         if (ApplicationLoader.applicationLoaderInstance != null) {
             ApplicationLoader.applicationLoaderInstance.addItemOptions(io);
