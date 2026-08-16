@@ -24,17 +24,10 @@ function install() {
   rm -rf $DIR/$ABI
   mkdir -p $DIR/$ABI
   
-  # Copy first to ensure we always have the file
+  # Copy the binary directly. 
+  # Android Gradle Plugin will automatically strip it during the assembleRelease task.
   cp "$SO_FILE" $DIR/$ABI/
-  
-  local STRIP_CMD=$(find $ANDROID_HOME/ndk -name "llvm-strip" | head -n 1)
-  if [ -n "$STRIP_CMD" ] && [ -x "$STRIP_CMD" ]; then
-    # Strip in-place
-    $STRIP_CMD "$DIR/$ABI/$(basename "$SO_FILE")" || echo "Warning: llvm-strip failed, using unstripped binary"
-    echo ">> Installed and stripped $DIR/$ABI/$(basename "$SO_FILE")"
-  else
-    echo ">> Installed unstripped $DIR/$ABI/$(basename "$SO_FILE")"
-  fi
+  echo ">> Installed $DIR/$ABI/$(basename "$SO_FILE")"
   
   if [ ! -f "$DIR/$ABI/$(basename "$SO_FILE")" ]; then
     echo ">> FATAL: Failed to install $ABI binary!"
