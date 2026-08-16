@@ -21534,6 +21534,7 @@ public class MessagesController extends BaseController implements NotificationCe
                                     NativeByteBuffer data = cursor.byteBufferValue(0);
                                     if (data != null) {
                                         TLRPC.Message message = TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
+                                        message.id = msgId;
                                         message.readAttachPath(data, getUserConfig().clientUserId);
                                         data.reuse();
                                         MessageCustomParamsHelper.readLocalParams(message, cursor.byteBufferValue(1));
