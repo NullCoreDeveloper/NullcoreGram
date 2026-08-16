@@ -210,56 +210,32 @@ object FileUtil {
 
         }
 
-        if (!newFile.isFile) {
-
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) {
-
-                Build.SUPPORTED_ABIS.forEachIndexed { index, abi ->
-
-                    runCatching {
-
-                        saveNonAsset("lib/$abi/${execFile.name}", execFile)
-
-                        FileLog.d("lib extracted with default abi$index ($abi): $execFile")
-
-                    }.onFailure {
-
-                        FileLog.d("$abi: ${it.message ?: it.javaClass.simpleName}")
-
-                    }
-
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) {
+            Build.SUPPORTED_ABIS.forEachIndexed { index, abi ->
+                runCatching {
+                    saveNonAsset("lib/$abi/${execFile.name}", newFile)
+                    FileLog.d("lib extracted with default abi$index ($abi): $newFile")
+                    newFile.setExecutable(true)
+                    return newFile
+                }.onFailure {
+                    FileLog.d("$abi: ${it.message ?: it.javaClass.simpleName}")
                 }
-
-                error("library not found ${execFile.name}")
-
             }
-
         } else {
-
             runCatching {
-
-                saveNonAsset("lib/${Build.CPU_ABI}/${execFile.name}", execFile)
-
-                FileLog.d("lib extracted with default abi (${Build.CPU_ABI}): $execFile")
-
+                saveNonAsset("lib/${Build.CPU_ABI}/${execFile.name}", newFile)
+                FileLog.d("lib extracted with default abi (${Build.CPU_ABI}): $newFile")
+                newFile.setExecutable(true)
+                return newFile
             }.recover {
-
-                saveNonAsset("lib/${Build.CPU_ABI2}/${execFile.name}", execFile)
-
-                FileLog.d("lib extracted with abi2 (${Build.CPU_ABI2}): $execFile")
-
+                saveNonAsset("lib/${Build.CPU_ABI2}/${execFile.name}", newFile)
+                FileLog.d("lib extracted with abi2 (${Build.CPU_ABI2}): $newFile")
+                newFile.setExecutable(true)
+                return newFile
             }
-
         }
 
-        if (!execFile.canExecute()) {
-
-            execFile.setExecutable(true)
-
-        }
-
-        return execFile
-
+        error("library not found ${execFile.name}")
     }
 
 
