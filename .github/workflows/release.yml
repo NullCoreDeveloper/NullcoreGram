@@ -126,7 +126,7 @@ jobs:
         with:
           path: |
             TMessagesProj/src/main/libs
-          key: ${{ hashFiles('TMessagesProj/jni/**', 'ffmpeg_status', 'boringssl_status') }}-v5-${{ matrix.flavor }}
+          key: ${{ hashFiles('TMessagesProj/jni/**', 'ffmpeg_status', 'boringssl_status') }}-v6-${{ matrix.flavor }}
       - name: Checkout Library
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
