@@ -10,7 +10,8 @@ export COMPILE_NATIVE=1
 
 function install() {
   local ABI="$1"
-  local SO_FILE=$(find TMessagesProj/build/intermediates/cxx -name "libtmessages*.so" | grep "/$ABI/" | head -n 1)
+  # Find the largest .so file to avoid picking 0-byte ninja marker files
+  local SO_FILE=$(find TMessagesProj/build/intermediates/cxx -name "libtmessages*.so" -type f | grep "/$ABI/" | xargs -r ls -s | sort -n | tail -n 1 | awk '{print $2}')
 
   if [ -z "$SO_FILE" ] || [ ! -f "$SO_FILE" ]; then
     if [ -n "$NATIVE_TARGET" ] && [ "$NATIVE_TARGET" != "$ABI" ]; then
@@ -23,13 +24,21 @@ function install() {
   rm -rf $DIR/$ABI
   mkdir -p $DIR/$ABI
   
+  # Copy first to ensure we always have the file
+  cp "$SO_FILE" $DIR/$ABI/
+  
   local STRIP_CMD=$(find $ANDROID_HOME/ndk -name "llvm-strip" | head -n 1)
   if [ -n "$STRIP_CMD" ] && [ -x "$STRIP_CMD" ]; then
-    $STRIP_CMD "$SO_FILE" -o "$DIR/$ABI/$(basename "$SO_FILE")"
+    # Strip in-place
+    $STRIP_CMD "$DIR/$ABI/$(basename "$SO_FILE")" || echo "Warning: llvm-strip failed, using unstripped binary"
     echo ">> Installed and stripped $DIR/$ABI/$(basename "$SO_FILE")"
   else
-    cp "$SO_FILE" $DIR/$ABI/
     echo ">> Installed unstripped $DIR/$ABI/$(basename "$SO_FILE")"
+  fi
+  
+  if [ ! -f "$DIR/$ABI/$(basename "$SO_FILE")" ]; then
+    echo ">> FATAL: Failed to install $ABI binary!"
+    exit 1
   fi
 }
 
