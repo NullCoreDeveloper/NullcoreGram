@@ -4603,8 +4603,11 @@ public class AndroidUtilities {
                         }
                     } else if (scheme.equals("tg")) {
                         String url = data.toString();
-                        if (url.startsWith("tg:proxy") || url.startsWith("tg://proxy") || url.startsWith("tg:socks") || url.startsWith("tg://socks")) {
-                            url = url.replace("tg:proxy", "tg://telegram.org").replace("tg://proxy", "tg://telegram.org").replace("tg://socks", "tg://telegram.org").replace("tg:socks", "tg://telegram.org");
+                        if (url.startsWith("tg:proxy") || url.startsWith("tg://proxy") || url.startsWith("tg:socks") || url.startsWith("tg://socks") || url.startsWith("tg:webproxy") || url.startsWith("tg://webproxy")) {
+                            boolean isWebProxy = url.startsWith("tg:webproxy") || url.startsWith("tg://webproxy");
+                            url = url.replace("tg:proxy", "tg://telegram.org").replace("tg://proxy", "tg://telegram.org")
+                                       .replace("tg://socks", "tg://telegram.org").replace("tg:socks", "tg://telegram.org")
+                                       .replace("tg://webproxy", "tg://telegram.org").replace("tg:webproxy", "tg://telegram.org");
                             data = Uri.parse(url);
                             address = data.getQueryParameter("server");
                             if (AndroidUtilities.checkHostForPunycode(address)) {
@@ -4614,6 +4617,16 @@ public class AndroidUtilities {
                             user = data.getQueryParameter("user");
                             password = data.getQueryParameter("pass");
                             secret = data.getQueryParameter("secret");
+
+                            if (isWebProxy) {
+                                if (TextUtils.isEmpty(port)) {
+                                    port = "443";
+                                }
+                                if (!TextUtils.isEmpty(secret) && !"webproxy".equals(secret)) {
+                                    address = address + "/" + secret;
+                                }
+                                secret = "webproxy";
+                            }
                         }
                     }
                 }
