@@ -21493,7 +21493,9 @@ public class MessagesController extends BaseController implements NotificationCe
                     } else {
                         try {
                             String ids = TextUtils.join(",", arrayList);
-                            SQLiteCursor cursor = getMessagesStorage().getDatabase().queryFinalized(String.format(Locale.US, "SELECT mid, data FROM messages_v2 WHERE mid IN(%s) AND uid = %d", ids, key));
+                            SQLiteCursor cursor = key == 0 ?
+                                getMessagesStorage().getDatabase().queryFinalized(String.format(Locale.US, "SELECT mid, data FROM messages_v2 WHERE mid IN(%s)", ids)) :
+                                getMessagesStorage().getDatabase().queryFinalized(String.format(Locale.US, "SELECT mid, data FROM messages_v2 WHERE mid IN(%s) AND uid = %d", ids, key));
                             while (cursor.next()) {
                                 int mid = cursor.intValue(0);
                                 NativeByteBuffer data = cursor.byteBufferValue(1);
@@ -21529,8 +21531,11 @@ public class MessagesController extends BaseController implements NotificationCe
                         for (int i = 0; i < toGhost.size(); i++) {
                             final int msgId = toGhost.get(i);
                             try {
-                                SQLiteCursor cursor = getMessagesStorage().getDatabase().queryFinalized(String.format(Locale.US, "SELECT data, custom_params FROM messages_v2 WHERE mid = %d AND uid = %d LIMIT 1", msgId, key));
+                                SQLiteCursor cursor = key == 0 ?
+                                        getMessagesStorage().getDatabase().queryFinalized(String.format(Locale.US, "SELECT data, custom_params, uid FROM messages_v2 WHERE mid = %d LIMIT 1", msgId)) :
+                                        getMessagesStorage().getDatabase().queryFinalized(String.format(Locale.US, "SELECT data, custom_params, uid FROM messages_v2 WHERE mid = %d AND uid = %d LIMIT 1", msgId, key));
                                 if (cursor.next()) {
+                                    long actualUid = key == 0 ? cursor.longValue(2) : key;
                                     NativeByteBuffer data = cursor.byteBufferValue(0);
                                     if (data != null) {
                                         TLRPC.Message message = TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
@@ -21546,7 +21551,7 @@ public class MessagesController extends BaseController implements NotificationCe
                                             changedTtl = true;
                                         }
                                         
-                                        getMessagesStorage().updateMessageCustomParams(key, message);
+                                        getMessagesStorage().updateMessageCustomParams(actualUid, message);
                                         
                                         if (changedTtl) {
                                             NativeByteBuffer newData = new NativeByteBuffer(message.getObjectSize());
@@ -21555,7 +21560,7 @@ public class MessagesController extends BaseController implements NotificationCe
                                             state.requery();
                                             state.bindByteBuffer(1, newData);
                                             state.bindInteger(2, msgId);
-                                            state.bindLong(3, key);
+                                            state.bindLong(3, actualUid);
                                             state.step();
                                             state.dispose();
                                             newData.reuse();
