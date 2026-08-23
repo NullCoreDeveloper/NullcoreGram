@@ -20,11 +20,11 @@
     <string name="SendReactions">Send reaksjoner</string>
     <string name="ShowReactions">Vis Reaksjoner</string>
     <string name="CustomTitle">Tilpasset tittel</string>
-    <string name="CustomTitleHint">La stå tomt for å bruke NullcoreGram</string>
+    <string name="CustomTitleHint">La stå tomt for å bruke NCgram</string>
     <string name="CodeSyntaxHighlight">Fremheving av kode syntaks</string>
     <string name="CreateMono">Opprett monospace</string>
     <string name="CreateMonoLanguage">Kode språk</string>
-    <string name="CodeSyntaxHighlightDetails">Takk til fengsler og NullcoreGram</string>
+    <string name="CodeSyntaxHighlightDetails">Takk til fengsler og NCgram</string>
     <string name="UseSystemUnlock">Passord opplåsning bruk system ui</string>
     <string name="CopyPhoto">Kopier bilde</string>
     <string name="PhotoCopied">Bilde kopiert til utklippstavlen</string>
@@ -77,7 +77,7 @@
     <string name="IconDecoration">Ikon dekorasjon</string>
     <string name="NotificationIcon">Notifikasjons ikon</string>
     <string name="Official">Offisiell</string>
-    <string name="NullcoreGram">NullcoreGram</string>
+    <string name="NCgram">NCgram</string>
     <string name="HalloWeen">HalloWeen</string>
     <string name="ShowOnlineStatus">Vis tilkoblet status</string>
     <string name="ShowOnlineStatusNotice">Vis statusen på nettet til andre personer ved siden av deres profilbilde i grupper</string>

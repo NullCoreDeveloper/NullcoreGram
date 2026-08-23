@@ -1,5 +1,7 @@
 # NullcoreGram
 
+![Views](https://visitor-badge.laobi.icu/badge?page_id=NullCoreDeveloper.Nullcoregram)
+
 NullcoreGram is a hardened, privacy-focused Telegram client based on [NekoX](https://github.com/NekoX-Dev/NekoX) / Nagram, designed for maximum security and anonymity.
 
 - **GitHub Repository**: <https://github.com/NullCoreDeveloper/NullcoreGram>

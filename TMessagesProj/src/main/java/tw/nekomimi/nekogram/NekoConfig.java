@@ -118,7 +118,7 @@ public class NekoConfig {
     public static ConfigItem showIdAndDc = addConfig("ShowIdAndDc", configTypeBool, false);
 
     public static ConfigItem cachePath = addConfig("cache_path", configTypeString, "");
-    public static ConfigItem customSavePath = addConfig("customSavePath", configTypeString, "NullcoreGram");
+    public static ConfigItem customSavePath = addConfig("customSavePath", configTypeString, "NCgram");
 
     public static ConfigItem translationProvider = addConfig("translationProvider", configTypeInt, 1);
     public static ConfigItem translateToLang = addConfig("TransToLang", configTypeString, ""); // "" -> translate to current language (MessageTrans.kt & Translator.kt)
@@ -229,6 +229,12 @@ public class NekoConfig {
                 }
                 if (o.type == configTypeString) {
                     o.value = preferences.getString(o.key, (String) o.defaultValue);
+                    if ("CustomTitle".equals(o.key)) {
+                        if ("Nagram".equals(o.value) || "NullcoreGram".equals(o.value)) {
+                            o.value = "NCgram";
+                            preferences.edit().putString(o.key, "NCgram").apply();
+                        }
+                    }
                 }
                 if (o.type == configTypeSetInt) {
                     Set<String> ss = preferences.getStringSet(o.key, new HashSet<>());

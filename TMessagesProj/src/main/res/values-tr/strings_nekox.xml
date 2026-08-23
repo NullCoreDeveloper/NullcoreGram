@@ -170,7 +170,7 @@
     <string name="DisableDeveloperMode">Geliştirici Modunu Devre Dışı Bırak</string>
     <string name="DeveloperSettings">Geliştirici Ayarları</string>
     <string name="LoginSettings">Giriş Ayarları</string>
-    <string name="NekoXFaq">NullcoreGram SSS</string>
+    <string name="NekoXFaq">NCgram SSS</string>
     <string name="TransSite">Çeviri Platformu</string>
     <string name="OpenKayChain">OpenPGP İstemcisi</string>
     <string name="OpenPGPApp">OpenPGP Sağlayıcısı</string>
@@ -257,7 +257,7 @@
     <string name="update_download_soucre">İndirme kaynağı seçin</string>
     <string name="useCustomEmoji">Özel emoji paketi kullan</string>
     <string name="showSeconds">Zaman bilgisini saniye türünde göster</string>
-    <string name="AppUpdateNekoX">NullcoreGram X\'i güncelle</string>
+    <string name="AppUpdateNekoX">NCgram X\'i güncelle</string>
     <string name="customPublicProxyIPNotice">Bazı bölgelerde herkese açık proxy IP adresi belirtmek (örneğin Cloudflare) erişim hızını arttırabilir.</string>
     <string name="DeleteDownloadedFileExternal">Harici dosya atlandı.</string>
     <string name="repeatConfirmText">Tekrarlamak istediğinize emin misiniz\?</string>

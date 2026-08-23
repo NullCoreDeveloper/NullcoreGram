@@ -20,11 +20,11 @@
     <string name="ShowReactions">Tepkileri Göster</string>
     <string name="ScrollableChatPreview">Kaydırılabilir Sohbet Önizlemesi</string>
     <string name="CustomTitle">Özel Başlık</string>
-    <string name="CustomTitleHint">NullcoreGram\'ı kullanmak için boş bırakın</string>
+    <string name="CustomTitleHint">NCgram\'ı kullanmak için boş bırakın</string>
     <string name="CodeSyntaxHighlight">Kod sözdizimi vurgulaması</string>
     <string name="CreateMono">Create Monospace</string>
     <string name="CreateMonoLanguage">Kod dili</string>
-    <string name="CodeSyntaxHighlightDetails">Prismjs ve NullcoreGram sayesinde</string>
+    <string name="CodeSyntaxHighlightDetails">Prismjs ve NCgram sayesinde</string>
     <string name="UseSystemUnlock">Şifreyi Açmak için  kullanıcı arayüzünü kullanın</string>
     <string name="CopyPhoto">Fotoğrafı Kopyala</string>
     <string name="PhotoCopied">Fotoğraf Panoya kopyalandı</string>

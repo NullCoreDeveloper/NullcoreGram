@@ -20,11 +20,11 @@
     <string name="SendReactions">表情回應</string>
     <string name="ShowReactions">顯示表情回應選單</string>
     <string name="CustomTitle">自訂標題</string>
-    <string name="CustomTitleHint">留空則使用 NullcoreGram</string>
+    <string name="CustomTitleHint">留空則使用 NCgram</string>
     <string name="CodeSyntaxHighlight">程式碼語法高亮</string>
     <string name="CreateMono">建立等寬</string>
     <string name="CreateMonoLanguage">等寬語言</string>
-    <string name="CodeSyntaxHighlightDetails">感謝 Prismjs and NullcoreGram</string>
+    <string name="CodeSyntaxHighlightDetails">感謝 Prismjs and NCgram</string>
     <string name="UseSystemUnlock">鎖定碼解鎖使用系統介面</string>
     <string name="CopyPhoto">複製圖片</string>
     <string name="PhotoCopied">圖片已複製到剪貼簿</string>
@@ -77,7 +77,7 @@
     <string name="IconDecoration">圖示裝飾</string>
     <string name="NotificationIcon">通知圖標樣式</string>
     <string name="Official">官方</string>
-    <string name="NullcoreGram">NullcoreGram</string>
+    <string name="NCgram">NCgram</string>
     <string name="HalloWeen">萬聖節</string>
     <string name="ShowOnlineStatus">顯示使用者線上狀態</string>
     <string name="ShowOnlineStatusNotice">在群組聊天時使用者頭像的右下角顯示線上狀態</string>

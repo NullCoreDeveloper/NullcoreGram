@@ -170,7 +170,7 @@
     <string name="DisableDeveloperMode">השבת את מצב המפתחים</string>
     <string name="DeveloperSettings">הגדרות מפתחים</string>
     <string name="LoginSettings">הגדרות כניסה</string>
-    <string name="NekoXFaq">שאלות נפוצות על NullcoreGram</string>
+    <string name="NekoXFaq">שאלות נפוצות על NCgram</string>
     <string name="TransSite">תרגם פלטפורמה</string>
     <string name="OpenKayChain">לקוח OpenPGP</string>
     <string name="OpenPGPApp">ספק OpenPGP</string>
@@ -271,7 +271,7 @@
     <string name="ShareMessages">שיתוף</string>
     <string name="NekoXUpdateTranslationHint">לחיצה תתרגם את יומן השינויים</string>
     <string name="AutoCheckUpdatePreview">תצוגה מקדימה (לא יציב)</string>
-    <string name="AppUpdateNekoX">עדכון NullcoreGram</string>
+    <string name="AppUpdateNekoX">עדכון NCgram</string>
     <string name="Name">שם</string>
     <string name="channelAlias">כינוי ערוץ</string>
     <string name="channelAliasDetails">דרישת הוספת תווית על משתמשים בערוצים פעילה.</string>

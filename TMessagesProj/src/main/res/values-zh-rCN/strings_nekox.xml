@@ -47,7 +47,7 @@
     <string name="TransToLang">目标翻译语言</string>
     <string name="TransInputToLang">输入翻译目标语言</string>
     <string name="More">更多</string>
-    <string name="NekoXUpdatesChannel">NullcoreGram 更新频道</string>
+    <string name="NekoXUpdatesChannel">NCgram 更新频道</string>
     <string name="ShowIdAndDc">在个人资料中显示 ID/ DC</string>
     <string name="UseDefaultTheme">使用默认主题 *</string>
     <string name="NightMode">夜间模式</string>
@@ -87,9 +87,9 @@
     <string name="SortByUnmuted">允许通知优先排序</string>
     <string name="SortByUser">用户优先排序</string>
     <string name="SortByContacts">联系人优先排序</string>
-    <string name="NekoXPushService">NullcoreGram 通知服务</string>
-    <string name="EnablePushAlert">请启用 \"NullcoreGram 通知服务\"</string>
-    <string name="DisablePushAlert">请禁用 \"NullcoreGram 通知服务\"</string>
+    <string name="NekoXPushService">NCgram 通知服务</string>
+    <string name="EnablePushAlert">请启用 \"NCgram 通知服务\"</string>
+    <string name="DisablePushAlert">请禁用 \"NCgram 通知服务\"</string>
     <string name="DisableUndo">禁用五秒内后悔</string>
     <string name="DisableSystemAccount">禁用系统帐户</string>
     <string name="FilterMenu">分类菜单</string>
@@ -170,7 +170,7 @@
     <string name="DisableDeveloperMode">禁用开发者模式</string>
     <string name="DeveloperSettings">开发者设置</string>
     <string name="LoginSettings">登录设置</string>
-    <string name="NekoXFaq">NullcoreGram 常见问题</string>
+    <string name="NekoXFaq">NCgram 常见问题</string>
     <string name="TransSite">翻译平台</string>
     <string name="OpenKayChain">OpenPGP 客户端</string>
     <string name="OpenPGPApp">OpenPGP 客户端</string>
@@ -270,7 +270,7 @@
     <string name="rememberAllBackMessages">记住已点击的回复</string>
     <string name="ShareMessages">分享</string>
     <string name="AutoCheckUpdatePreview">预览版(不稳定)</string>
-    <string name="AppUpdateNekoX">更新 NullcoreGram</string>
+    <string name="AppUpdateNekoX">更新 NCgram</string>
     <string name="NekoXUpdateTranslationHint">长按以翻译更新日志</string>
     <string name="channelAlias">频道别名</string>
     <string name="labelChannelUser">标记频道匿名身份别名</string>

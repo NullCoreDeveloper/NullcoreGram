@@ -170,7 +170,7 @@
     <string name="DisableDeveloperMode">Вимкнути режим розробки</string>
     <string name="DeveloperSettings">Параметри розробки</string>
     <string name="LoginSettings">Параметри входу</string>
-    <string name="NekoXFaq">Питання NullcoreGram</string>
+    <string name="NekoXFaq">Питання NCgram</string>
     <string name="TransSite">Платформа перекладу</string>
     <string name="OpenKayChain">Клієнт OpenPGP</string>
     <string name="OpenPGPApp">Провайдер OpenPGP</string>
@@ -271,7 +271,7 @@
     <string name="rememberAllBackMessages">Пам\'ятати натиснені відповіді</string>
     <string name="AutoCheckUpdatePreview">Випробувальна (нестабільна)</string>
     <string name="NekoXUpdateTranslationHint">Торкніть, щоб перекласти журнал змін</string>
-    <string name="AppUpdateNekoX">Оновити NullcoreGram</string>
+    <string name="AppUpdateNekoX">Оновити NCgram</string>
     <string name="Name">Ім\'я</string>
     <string name="channelAlias">Псевдонім каналу</string>
     <string name="labelChannelUserDetails">Підписувати повідомлення з каналу відповідно.</string>

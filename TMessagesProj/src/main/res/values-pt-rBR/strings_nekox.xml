@@ -271,7 +271,7 @@
     <string name="ShareMessages">Compartilhar</string>
     <string name="NekoXUpdateTranslationHint">Toque para traduzir o histórico de alterações</string>
     <string name="AutoCheckUpdatePreview">Prévia (Instável)</string>
-    <string name="AppUpdateNekoX">Atualizar NullcoreGram</string>
+    <string name="AppUpdateNekoX">Atualizar NCgram</string>
     <string name="setChannelAliasName">Definir apelido</string>
     <string name="labelChannelUser">Rotular usuário do canal</string>
     <string name="labelChannelUserDetails">Se o remetente da mensagem for \"Canal\", ele será rotulado como \"Canal\".</string>

@@ -20,11 +20,11 @@
     <string name="SendReactions">Reaktionen senden</string>
     <string name="ShowReactions">Reaktionen anzeigen</string>
     <string name="CustomTitle">Eigener Titel</string>
-    <string name="CustomTitleHint">Leer lassen, um NullcoreGram zu verwenden</string>
+    <string name="CustomTitleHint">Leer lassen, um NCgram zu verwenden</string>
     <string name="CodeSyntaxHighlight">Code-Syntax hervorheben</string>
     <string name="CreateMono">Monospace erstellen</string>
     <string name="CreateMonoLanguage">Code-Sprache</string>
-    <string name="CodeSyntaxHighlightDetails">Dank Prismjs und NullcoreGram</string>
+    <string name="CodeSyntaxHighlightDetails">Dank Prismjs und NCgram</string>
     <string name="UseSystemUnlock">Passwort entsperren System ui</string>
     <string name="CopyPhoto">Foto kopieren</string>
     <string name="PhotoCopied">Foto in Zwischenablage kopiert</string>
@@ -77,7 +77,7 @@
     <string name="IconDecoration">Icon-Dekoration</string>
     <string name="NotificationIcon">Benachrichtigungssymbol</string>
     <string name="Official">Offiziell</string>
-    <string name="NullcoreGram">NullcoreGram</string>
+    <string name="NCgram">NCgram</string>
     <string name="HalloWeen">Halloween</string>
     <string name="ShowOnlineStatus">Online-Status anzeigen</string>
     <string name="ShowOnlineStatusNotice">Zeige den Online-Status von anderen Personen neben ihrem Profilfoto in Gruppen</string>
@@ -92,7 +92,7 @@
     <string name="ShowForumAsNormalChat">Forum als normaler Chat anzeigen</string>
     <string name="DecorationNone">Keine</string>
     <string name="ChatDecoration">Chat-Dekoration</string>
-    <string name="NeedChangeNekoSettings">Du musst die NullcoreGram Einstellungen ändern</string>
+    <string name="NeedChangeNekoSettings">Du musst die NCgram Einstellungen ändern</string>
     <string name="DoNotUnarchiveBySwipe">Nicht durch Wischen entarchivieren</string>
     <string name="DoNotShareMyPhoneNumber">Meine Telefonnummer nicht teilen</string>
     <string name="DefaultDeleteMenu">Standard-Menü löschen</string>

@@ -20,7 +20,7 @@
     <string name="SendReactions">リアクションを送信</string>
     <string name="ShowReactions">リアクションの表示</string>
     <string name="CustomTitle">カスタムタイトル</string>
-    <string name="CustomTitleHint">NullcoreGramを使用するには空白のままにしてください</string>
+    <string name="CustomTitleHint">NCgramを使用するには空白のままにしてください</string>
     <string name="CodeSyntaxHighlight">コードの構文ハイライト</string>
     <string name="CreateMono">Monospaceを作成</string>
     <string name="CreateMonoLanguage">コード言語</string>
@@ -77,7 +77,7 @@
     <string name="IconDecoration">アイコン装飾</string>
     <string name="NotificationIcon">通知アイコン</string>
     <string name="Official">オフィシャル</string>
-    <string name="NullcoreGram">NullcoreGram</string>
+    <string name="NCgram">NCgram</string>
     <string name="HalloWeen">HalloWeen</string>
     <string name="ShowOnlineStatus">オンライン状態を表示</string>
     <string name="ShowOnlineStatusNotice">グループ内のプロフィール写真の隣に他の人のオンライン状態を表示する</string>

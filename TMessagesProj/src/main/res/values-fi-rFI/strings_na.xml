@@ -20,11 +20,11 @@
     <string name="SendReactions">Lähetä Reaktioita</string>
     <string name="ShowReactions">Näytä Reaktiot</string>
     <string name="CustomTitle">Oma Otsikko</string>
-    <string name="CustomTitleHint">Jätä tyhjäksi käyttääksesi NullcoreGramia</string>
+    <string name="CustomTitleHint">Jätä tyhjäksi käyttääksesi NCgramia</string>
     <string name="CodeSyntaxHighlight">Koodin syntaksin korostus</string>
     <string name="CreateMono">Luo Monospace</string>
     <string name="CreateMonoLanguage">Koodin kieli</string>
-    <string name="CodeSyntaxHighlightDetails">Kiitos prismjs ja NullcoreGram</string>
+    <string name="CodeSyntaxHighlightDetails">Kiitos prismjs ja NCgram</string>
     <string name="UseSystemUnlock">Tunnuskoodi Lukituksen poisto käyttää järjestelmää ui</string>
     <string name="CopyPhoto">Kopioi Kuva</string>
     <string name="PhotoCopied">Kuva kopioitu leikepöydälle</string>
@@ -77,7 +77,7 @@
     <string name="IconDecoration">Kuvakkeen Koristelu</string>
     <string name="NotificationIcon">Ilmoituksen Kuvake</string>
     <string name="Official">Virallinen</string>
-    <string name="NullcoreGram">NullcoreGram</string>
+    <string name="NCgram">NCgram</string>
     <string name="HalloWeen">HalloWeen</string>
     <string name="ShowOnlineStatus">Näytä Online Tila</string>
     <string name="ShowOnlineStatusNotice">Näytä muiden profiilikuvan vieressä olevien henkilöiden tila verkossa ryhmissä</string>

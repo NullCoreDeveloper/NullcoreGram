@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="AppName">NullcoreGram</string>
-    <string name="AppNameBeta">NullcoreGram Beta</string>
+    <string name="AppName">NCgram</string>
+    <string name="AppNameBeta">NCgram Beta</string>
     <string name="LanguageName">English</string>
     <string name="English">English</string>
     <string name="LanguageNameInEnglish">English</string>
@@ -11171,5 +11171,5 @@
     <string name="EditHistory">Edit History</string>
     <string name="NoEditHistory">No Edit History</string>
     <string name="ViewEditHistory">View Edit History</string>
-    <string name="Nekogram">NullcoreGram</string>
+    <string name="Nekogram">NCgram</string>
 </resources>

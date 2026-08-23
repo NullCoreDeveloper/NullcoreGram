@@ -20,11 +20,11 @@
     <string name="SendReactions">Skicka reaktioner</string>
     <string name="ShowReactions">Visa reaktioner</string>
     <string name="CustomTitle">Anpassad titel</string>
-    <string name="CustomTitleHint">Lämna tomt för att använda NullcoreGram</string>
+    <string name="CustomTitleHint">Lämna tomt för att använda NCgram</string>
     <string name="CodeSyntaxHighlight">Kod syntax markering</string>
     <string name="CreateMono">Skapa Monospace</string>
     <string name="CreateMonoLanguage">Kod språk</string>
-    <string name="CodeSyntaxHighlightDetails">Tack vare prismjs och NullcoreGram</string>
+    <string name="CodeSyntaxHighlightDetails">Tack vare prismjs och NCgram</string>
     <string name="UseSystemUnlock">Lösenkod Lås upp använda system ui</string>
     <string name="CopyPhoto">Kopiera foto</string>
     <string name="PhotoCopied">Foto kopierat till Urklipp</string>
@@ -77,7 +77,7 @@
     <string name="IconDecoration">Ikon dekoration</string>
     <string name="NotificationIcon">Ikon för avisering</string>
     <string name="Official">Officiell</string>
-    <string name="NullcoreGram">NullcoreGram</string>
+    <string name="NCgram">NCgram</string>
     <string name="HalloWeen">HalloWeen</string>
     <string name="ShowOnlineStatus">Visa onlinestatus</string>
     <string name="ShowOnlineStatusNotice">Visa status online för andra personer bredvid sin profilbild i grupper</string>

@@ -58,7 +58,7 @@
     <string name="PrivacyNotice2fa">Terdeteksi bahwa anda belum mengatur kata sandi, yang bisa di retas oleh Hacker suruhan pemerintah sehingga dengan mudah menemukan identitas asli anda, harap atur sekarang!</string>
     <string name="ApplySuggestion">Oke, Terapkan</string>
     <string name="DoNotRemindAgain">Jangan ingatkan lagi</string>
-    <string name="RemoveTitleEmoji">Hapus emoji pada judul NullcoreGramX</string>
+    <string name="RemoveTitleEmoji">Hapus emoji pada judul NCgramX</string>
     <string name="NekoXProxy">Proxy Publik NekoX</string>
     <string name="PublicPrefix">Publik</string>
     <string name="DisableChatAction">Jangan kirim status masukan saya</string>
@@ -170,7 +170,7 @@
     <string name="DisableDeveloperMode">Matikan Mode Pengembang</string>
     <string name="DeveloperSettings">Pengaturan Pengembang</string>
     <string name="LoginSettings">Pengaturan Login</string>
-    <string name="NekoXFaq">FAQ NullcoreGram</string>
+    <string name="NekoXFaq">FAQ NCgram</string>
     <string name="TransSite">Platform Penterjemah</string>
     <string name="OpenKayChain">Klien OpenPGP</string>
     <string name="OpenPGPApp">Penyedia OpenPGP</string>
@@ -252,7 +252,7 @@
     <string name="VersionUpdateTitle">Tersedia Versi Baru</string>
     <string name="AutoCheckUpdatePreview">Pratinjau (Tidak stabil)</string>
     <string name="rememberAllBackMessages">Ingat semua balasan yang diklik</string>
-    <string name="AppUpdateNekoX">Perbarui NullcoreGram</string>
+    <string name="AppUpdateNekoX">Perbarui NCgram</string>
     <string name="NekoXUpdateTranslationHint">Tekan untuk menterjemahkan log perubahan</string>
     <string name="repeatConfirm">Tanya sebelum mengulang</string>
     <string name="useCustomEmojiInvalid">Bukan zip emoji yang valid.</string>

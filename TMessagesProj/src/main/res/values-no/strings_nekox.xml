@@ -31,7 +31,7 @@
     <string name="OpenPGPApp">OpenPGP-tilbyder</string>
     <string name="OpenKayChain">OpenPGP-klient</string>
     <string name="TransSite">Oversettelsesplattform</string>
-    <string name="NekoXFaq">NullcoreGram-O-S-S</string>
+    <string name="NekoXFaq">NCgram-O-S-S</string>
     <string name="LoginSettings">Innloggingsinnstillinger</string>
     <string name="DeveloperSettings">Utviklerinnstillinger</string>
     <string name="NoQrFound">Fant ingen QR-kode</string>
@@ -141,7 +141,7 @@
     <string name="SubscriptionUrls">Nettadresser</string>
     <string name="SSRProtocolParams">Protokollparametre</string>
     <string name="hideSponsoredMessage">Skjul sponsormeldinger</string>
-    <string name="AppUpdateNekoX">Oppgrader NullcoreGram</string>
+    <string name="AppUpdateNekoX">Oppgrader NCgram</string>
     <string name="NekoXUpdateTranslationHint">Trykk for å oversette endringsloggen</string>
     <string name="SSRObfs">Obfs</string>
     <string name="ProxyInfoTrojan">Trojan-mellomtjenerinnstillinger</string>

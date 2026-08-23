@@ -98,7 +98,7 @@
     <string name="LoginSettings">Ρυθμίσεις σύνδεσης</string>
     <string name="SortByUnmuted">Κατά Μη σε Σίγαση</string>
     <string name="InvalidProxyFile">Μη έγκυρο αρχείο λίστας proxy:</string>
-    <string name="NekoXFaq">Συχνές ερωτήσεις NullcoreGram</string>
+    <string name="NekoXFaq">Συχνές ερωτήσεις NCgram</string>
     <string name="BrokenLink">Άγνωστο / Σφάλμα συνδέσμου</string>
     <string name="ProxyInfoSS">Ρυθμίσεις Proxy Shadowsocks</string>
     <string name="ReorderByPing">Αναδιάταξη servers βάσει ping</string>
@@ -243,7 +243,7 @@
 \nΜεγάλο avatar</string>
     <string name="AcceptSecretChat">Αποδοχή νέας απόρρητης συνομιλίας</string>
     <string name="customPublicProxyIPNotice">Σε ορισμένες περιοχές, ο προσδιορισμός της IP ενός δημόσιου CDN μεσολάβησης (π.χ. Cloudflare) μπορεί να επιταχύνει την πρόσβαση.</string>
-    <string name="AppUpdateNekoX">Ενημέρωση NullcoreGram X</string>
+    <string name="AppUpdateNekoX">Ενημέρωση NCgram X</string>
     <string name="setChannelAliasName">Ορισμός ψευδωνύμου</string>
     <string name="UnpinMessagesAll">Ξεκαρφίτσωμα όλων των μηνυμάτων</string>
     <string name="UnpinSticker">Ξεκαρφίτσωμα</string>

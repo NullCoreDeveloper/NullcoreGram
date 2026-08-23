@@ -47,7 +47,7 @@
     <string name="TransToLang">اللغة الهدف للترجمة</string>
     <string name="TransInputToLang">اللغة الهدف لإدخال الترجمة</string>
     <string name="More">المزيد</string>
-    <string name="NekoXUpdatesChannel">قناة تحديثات NullcoreGram</string>
+    <string name="NekoXUpdatesChannel">قناة تحديثات NCgram</string>
     <string name="ShowIdAndDc">إظهار ID / DC في الملف الشخصی</string>
     <string name="UseDefaultTheme">استخدام السمة الافتراضية *</string>
     <string name="NightMode">الوضع الليلي</string>
@@ -87,9 +87,9 @@
     <string name="SortByUnmuted">فرز حسب الغير مكتوم</string>
     <string name="SortByUser">فرز حسب المستخدم</string>
     <string name="SortByContacts">فرز حسب جهات الاتصال</string>
-    <string name="NekoXPushService">خدمة دفع NullcoreGram</string>
-    <string name="EnablePushAlert">الرجاء تمكين \"خدمة دفع NullcoreGram\"</string>
-    <string name="DisablePushAlert">الرجاء تعطيل \"خدمة دفع NullcoreGram\"</string>
+    <string name="NekoXPushService">خدمة دفع NCgram</string>
+    <string name="EnablePushAlert">الرجاء تمكين \"خدمة دفع NCgram\"</string>
+    <string name="DisablePushAlert">الرجاء تعطيل \"خدمة دفع NCgram\"</string>
     <string name="DisableUndo">تعطيل التراجع</string>
     <string name="DisableSystemAccount">تعطيل الحساب الخاص بالنظام</string>
     <string name="FilterMenu">قائمة عوامل تصفية الحوار</string>
@@ -170,7 +170,7 @@
     <string name="DisableDeveloperMode">تعطيل وضع المطور</string>
     <string name="DeveloperSettings">إعدادات المطور</string>
     <string name="LoginSettings">إعدادات الدخول</string>
-    <string name="NekoXFaq">أسئلة NullcoreGram الشائعة</string>
+    <string name="NekoXFaq">أسئلة NCgram الشائعة</string>
     <string name="TransSite">ترجمة النظام الأساسي</string>
     <string name="OpenKayChain">عميل OpenPGP</string>
     <string name="OpenPGPApp">موفر OpenPGP</string>
@@ -269,7 +269,7 @@
     <string name="DisableInstantCamera">تعطيل الكاميرا الفورية</string>
     <string name="showSeconds">إظهار الطابع الزمني بالثواني</string>
     <string name="ShareMessages">مشاركة</string>
-    <string name="AppUpdateNekoX">تحديث NullcoreGram</string>
+    <string name="AppUpdateNekoX">تحديث NCgram</string>
     <string name="AutoCheckUpdatePreview">معاينة (غير مستقر)</string>
     <string name="NekoXUpdateTranslationHint">اضغط لترجمة سجل التغييرات</string>
     <string name="Name">الاسم</string>

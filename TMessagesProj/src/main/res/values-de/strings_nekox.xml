@@ -44,7 +44,7 @@
     <string name="TransToLang">Zielsprache der Übersetzung</string>
     <string name="TransInputToLang">Quellsprache der Übersetzung</string>
     <string name="More">Mehr</string>
-    <string name="NekoXUpdatesChannel">NullcoreGram-Update-Kanal</string>
+    <string name="NekoXUpdatesChannel">NCgram-Update-Kanal</string>
     <string name="ShowIdAndDc">ID/DC im Profil anzeigen</string>
     <string name="UseDefaultTheme">Standardthema verwenden*</string>
     <string name="NightMode">Nachtmodus</string>
@@ -84,9 +84,9 @@
     <string name="SortByUnmuted">Nach nicht Stummgeschalten sortieren</string>
     <string name="SortByUser">Nach Nutzern sortieren</string>
     <string name="SortByContacts">Nach Kontakten sortieren</string>
-    <string name="NekoXPushService">NullcoreGram Push-Service</string>
-    <string name="EnablePushAlert">Bitte aktiviere den NullcoreGram Push-Service</string>
-    <string name="DisablePushAlert">Bitte deaktiviere den NullcoreGram Push-Service</string>
+    <string name="NekoXPushService">NCgram Push-Service</string>
+    <string name="EnablePushAlert">Bitte aktiviere den NCgram Push-Service</string>
+    <string name="DisablePushAlert">Bitte deaktiviere den NCgram Push-Service</string>
     <string name="DisableUndo">Rückgängig machen deaktivieren</string>
     <string name="DisableSystemAccount">Systemkonto deaktivieren</string>
     <string name="FilterMenu">Dialog Filtermenü</string>
@@ -164,7 +164,7 @@
     <string name="DisableDeveloperMode">Entwicklermodus deaktivieren</string>
     <string name="DeveloperSettings">Entwickleroptionen</string>
     <string name="LoginSettings">Anmeldeeinstellungen</string>
-    <string name="NekoXFaq">NullcoreGram FAQ</string>
+    <string name="NekoXFaq">NCgram FAQ</string>
     <string name="TransSite">Plattform übersetzen</string>
     <string name="OpenKayChain">OpenPGP-Client</string>
     <string name="OpenPGPApp">OpenPGP-Anbieter</string>
@@ -273,7 +273,7 @@
     <string name="Name">Name</string>
     <string name="setChannelAliasName">Kanalname festlegen</string>
     <string name="channelAliasDetails">Kanalbenutzerbezeichnung muss aktiviert sein.</string>
-    <string name="AppUpdateNekoX">NullcoreGram aktualisieren</string>
+    <string name="AppUpdateNekoX">NCgram aktualisieren</string>
     <string name="AutoCheckUpdatePreview">Vorschau (Instabil)</string>
     <string name="labelChannelUser">Kanalbenutzerbezeichnung</string>
     <string name="NekoXUpdateTranslationHint">Zum Übersetzen des Änderungsprotokolls betätigen</string>

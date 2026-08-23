@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="NekoX" translatable="false">NullcoreGram</string>
+    <string name="NekoX" translatable="false">NCgram</string>
     <string name="Locked">已鎖定</string>
     <string name="AccDescrChatAttachEnterMenu">聊天輸入選單</string>
     <string name="ChatAttachEnterMenuRecordVideo">錄製影片</string>
@@ -171,7 +171,7 @@
     <string name="DisableDeveloperMode">禁用開發者模式</string>
     <string name="DeveloperSettings">開發者設定</string>
     <string name="LoginSettings">登入設定</string>
-    <string name="NekoXFaq">NullcoreGram 常見問題</string>
+    <string name="NekoXFaq">NCgram 常見問題</string>
     <string name="TransSite">翻譯平臺</string>
     <string name="OpenKayChain">OpenPGP 客戶端</string>
     <string name="OpenPGPApp">OpenPGP 提供應用</string>
@@ -269,7 +269,7 @@
     <string name="rememberAllBackMessages">記住所有點選的回覆</string>
     <string name="DisableInstantCamera">禁用相機即時預覽</string>
     <string name="showSeconds">以秒為單位顯示時間戳</string>
-    <string name="AppUpdateNekoX">更新 NullcoreGram</string>
+    <string name="AppUpdateNekoX">更新 NCgram</string>
     <string name="NekoXUpdateTranslationHint">長按以翻譯更新日誌</string>
     <string name="Name">輸入別名</string>
     <string name="channelAlias">頻道別名</string>
