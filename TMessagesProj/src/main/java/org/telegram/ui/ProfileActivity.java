@@ -698,6 +698,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private int infoHeaderRowEmpty;
     private int infoEndRowEmpty;
     private int phoneRow;
+    private int userIdRow;
     private int noteRow;
     private int locationRow;
     private int userInfoRow;
@@ -7765,6 +7766,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             showDialog(dialog);
         } else if (position == noteRow) {
 
+        } else if (position == userIdRow) {
+            long id = user != null ? user.id : chat != null ? chat.id : 0;
+            if (id != 0) {
+                AndroidUtilities.addToClipboard(String.valueOf(id));
+                BulletinFactory.of(this).createCopyBulletin("ID скопирован").show();
+            }
         } else if (position == phoneRow || position == numberRow) {
             if (editRow(view, position)) return true;
 
@@ -10981,6 +10988,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         infoHeaderRowEmpty = -1;
         infoEndRowEmpty = -1;
         phoneRow = -1;
+        userIdRow = -1;
         noteRow = -1;
         userInfoRow = -1;
         locationRow = -1;
@@ -11179,6 +11187,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 }
                 if (!isBot && (hasPhone || !hasInfo) && !hideNumber) {
                     phoneRow = rowCount++;
+                }
+                if (user != null || chat != null) {
+                    userIdRow = rowCount++;
                 }
                 if (userInfo != null && !TextUtils.isEmpty(userInfo.about)) {
                     userInfoRow = rowCount++;
@@ -14071,6 +14082,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
                             containsGift = !myProfile && today && !getMessagesController().premiumPurchaseBlocked();
                         }
+                    } else if (position == userIdRow) {
+                        long id = user != null ? user.id : chat != null ? chat.id : 0;
+                        if (id != 0) {
+                            detailCell.setTextAndValue(String.valueOf(id), "ID", false);
+                        }
                     } else if (position == phoneRow) {
                         String text;
                         TLRPC.User user = getMessagesController().getUser(userId);
@@ -14938,7 +14954,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             if (position == infoHeaderRow || position == membersHeaderRow || position == settingsSectionRow2 ||
                     position == numberSectionRow || position == helpHeaderRow || position == debugHeaderRow || position == botPermissionsHeader) {
                 return VIEW_TYPE_HEADER;
-            } else if (position == phoneRow || position == locationRow || position == numberRow || position == birthdayRow || position == restrictionReasonRow) {
+            } else if (position == phoneRow || position == userIdRow || position == locationRow || position == numberRow || position == birthdayRow || position == restrictionReasonRow) {
                 return VIEW_TYPE_TEXT_DETAIL;
             } else if (position == usernameRow || position == setUsernameRow) {
                 return VIEW_TYPE_TEXT_DETAIL_MULTILINE;
@@ -16354,6 +16370,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             put(++pointer, infoHeaderRowEmpty, sparseIntArray);
             put(++pointer, infoEndRowEmpty, sparseIntArray);
             put(++pointer, phoneRow, sparseIntArray);
+            put(++pointer, userIdRow, sparseIntArray);
             put(++pointer, noteRow, sparseIntArray);
             put(++pointer, locationRow, sparseIntArray);
             put(++pointer, userInfoRow, sparseIntArray);
@@ -16961,6 +16978,13 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             textToCopy = UserObject.getPublicUsername(user);
             if (textToCopy != null) textToCopy = "@" + textToCopy;
             copyButton = getString(R.string.ProfileCopyUsername);
+        } else if (position == userIdRow) {
+            long id = user != null ? user.id : chat != null ? chat.id : 0;
+            if (id != 0) {
+                AndroidUtilities.addToClipboard(String.valueOf(id));
+                BulletinFactory.of(this).createCopyBulletin("ID скопирован").show();
+                return true;
+            }
         } else if (position == phoneRow) {
             textToCopy = user.phone;
         } else if (position == birthdayRow) {

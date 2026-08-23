@@ -27,6 +27,9 @@ public:
 
     void writeBuffer(uint8_t *data, uint32_t size);
     void writeBuffer(NativeByteBuffer *buffer);
+    void onWebProxyData(const uint8_t *data, uint32_t size);
+    void onWebProxyConnected();
+    void onWebProxyDisconnected();  // вызывается WebProxyServer при потере соединения с браузером
     void openConnection(std::string address, uint16_t port, std::string secret, bool ipv6, int32_t networkType);
     void setTimeout(time_t timeout);
     time_t getTimeout();
@@ -80,6 +83,9 @@ private:
     ByteArray *tempBuffer = nullptr;
     size_t bytesRead = 0;
     int8_t tlsState = 0;
+
+    bool isWebProxy = false;
+    uint32_t webProxyStreamId = 0;
 
     uint8_t proxyAuthState;
 

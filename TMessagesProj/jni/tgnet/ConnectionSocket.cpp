@@ -22,6 +22,7 @@
 #include <openssl/bn.h>
 #include "ByteStream.h"
 #include "ConnectionSocket.h"
+#include "WebProxyServer.h"
 #include "FileLog.h"
 #include "Defines.h"
 #include "ConnectionsManager.h"
@@ -590,6 +591,12 @@ void ConnectionSocket::openConnection(std::string address, uint16_t port, std::s
 
     if (!proxyAddress->empty()) {
         if (LOGS_ENABLED) DEBUG_D("connection(%p) connecting via proxy %s:%d secret[%d] ipv6:%d", this, proxyAddress->c_str(), proxyPort, (int) proxySecret->size(), isProxyIpv6);
+        if (*proxySecret == "webproxy") {
+            isWebProxy = true;
+            WebProxyServer::getInstance().start(*proxyAddress);
+            webProxyStreamId = WebProxyServer::getInstance().registerStream(this);
+            return;
+        }
         if ((socketFd = socket(isProxyIpv6 ? AF_INET6 : AF_INET, SOCK_STREAM, 0)) < 0) {
             if (LOGS_ENABLED) DEBUG_E("connection(%p) can't create proxy socket", this);
             closeSocket(1, -1);
@@ -765,6 +772,11 @@ int32_t ConnectionSocket::checkSocketError(int32_t *error) {
 void ConnectionSocket::closeSocket(int32_t reason, int32_t error) {
     lastEventTime = ConnectionsManager::getInstance(instanceNum).getCurrentTimeMonotonicMillis();
     ConnectionsManager::getInstance(instanceNum).detachConnection(this);
+    if (isWebProxy) {
+        WebProxyServer::getInstance().closeStream(webProxyStreamId);
+        isWebProxy = false;
+        webProxyStreamId = 0;
+    }
     if (socketFd >= 0) {
         epoll_ctl(ConnectionsManager::getInstance(instanceNum).epolFd, EPOLL_CTL_DEL, socketFd, nullptr);
         if (close(socketFd) != 0) {
@@ -1174,13 +1186,50 @@ void ConnectionSocket::onEvent(uint32_t events) {
 }
 
 void ConnectionSocket::writeBuffer(uint8_t *data, uint32_t size) {
+    if (isWebProxy) {
+        NativeByteBuffer* buf = BuffersStorage::getInstance().getFreeBuffer(size);
+        buf->writeBytes(data, size);
+        buf->rewind();
+        WebProxyServer::getInstance().sendData(webProxyStreamId, buf);
+        buf->reuse();
+        return;
+    }
     NativeByteBuffer *buffer = BuffersStorage::getInstance().getFreeBuffer(size);
     buffer->writeBytes(data, size);
     outgoingByteStream->append(buffer);
     adjustWriteOp();
 }
 
+void ConnectionSocket::onWebProxyConnected() {
+    onConnectedSent = true;
+    onConnected();
+}
+
+void ConnectionSocket::onWebProxyData(const uint8_t *data, uint32_t size) {
+    NativeByteBuffer *buffer = ConnectionsManager::getInstance(instanceNum).networkBuffer;
+    buffer->rewind();
+    if (size > buffer->capacity()) {
+        if (LOGS_ENABLED) DEBUG_E("connection(%p) WebProxy packet too large", this);
+        closeSocket(1, -1);
+        return;
+    }
+    memcpy(buffer->bytes(), data, size);
+    buffer->limit(size);
+    onReceivedData(buffer);
+}
+
+void ConnectionSocket::onWebProxyDisconnected() {
+    if (!isWebProxy) return;
+    // Переводим closeSocket через стандартный механизм tgnet.
+    // reason=1 (error), error=0.
+    closeSocket(1, 0);
+}
+
 void ConnectionSocket::writeBuffer(NativeByteBuffer *buffer) {
+    if (isWebProxy) {
+        WebProxyServer::getInstance().sendData(webProxyStreamId, buffer);
+        return;
+    }
     outgoingByteStream->append(buffer);
     adjustWriteOp();
 }

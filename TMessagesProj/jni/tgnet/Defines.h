@@ -95,7 +95,9 @@ enum EventObjectType {
     EventObjectTypeConnection,
     EventObjectTypeTimer,
     EventObjectTypePipe,
-    EventObjectTypeEvent
+    EventObjectTypeEvent,
+    EventObjectTypeWebProxyListen,
+    EventObjectTypeWebProxyClient
 };
 
 enum FileLoadState {

@@ -476,6 +476,7 @@ public class ProfileActivity2 extends BaseFragment implements
     private static final int ID_BIZ_HOURS = 9;
     private static final int ID_BIZ_LOCATION = 10;
     private static final int ID_NOTE = 11;
+    private static final int ID_USER_ID = 12;
 
     private boolean isSection(View view) {
         if (view == null) return false;
@@ -491,6 +492,7 @@ public class ProfileActivity2 extends BaseFragment implements
 
         if (user != null) {
             addPhoneRow(items);
+            addUserIdRow(items);
             addUsernameRow(items);
             if (userInfo != null) {
                 if (userInfo.birthday != null) {
@@ -536,6 +538,7 @@ public class ProfileActivity2 extends BaseFragment implements
                     addUsernameRow(items);
                 }
             }
+            addUserIdRow(items);
             items.add(UItem.asSpace(dp(10)));
         }
 
@@ -569,6 +572,22 @@ public class ProfileActivity2 extends BaseFragment implements
             isFragment ? getString(R.string.AnonymousNumber) : getString(R.string.PhoneMobile)
         ));
     }
+    
+    private void addUserIdRow(ArrayList<UItem> items) {
+        long id = 0;
+        if (user != null) {
+            id = user.id;
+        } else if (chat != null) {
+            id = chat.id;
+        }
+        if (id == 0) return;
+        items.add(TextDetailCell.Factory.of(
+            ID_USER_ID,
+            String.valueOf(id),
+            "ID"
+        ));
+    }
+    
     private void addUsernameRow(ArrayList<UItem> items) {
         String username = null;
         CharSequence text, value;
@@ -716,10 +735,20 @@ public class ProfileActivity2 extends BaseFragment implements
         if (item.id == ID_BIZ_HOURS) {
             hoursExpanded = !hoursExpanded;
             listView.adapter.update(true);
+        } else if (item.id == ID_USER_ID) {
+            long id = user != null ? user.id : chat != null ? chat.id : 0;
+            if (id != 0) {
+                AndroidUtilities.addToClipboard(String.valueOf(id));
+                BulletinFactory.of(ProfileActivity2.this).createCopyBulletin("ID скопирован").show();
+            }
         }
     }
 
     private boolean onLongClick(UItem item, View view, int position, float x, float y) {
+        if (item.id == ID_USER_ID) {
+            onClick(item, view, position, x, y);
+            return true;
+        }
         return false;
     }
 
