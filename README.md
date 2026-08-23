@@ -95,3 +95,4 @@ NullcoreGram построен на базе невероятной работы 
 - [Nekogram](https://gitlab.com/Nekogram/Nekogram)
 - [Nullgram](https://github.com/qwq233/Nullgram)
 - [TeleTux](https://github.com/TeleTux/TeleTux)
+- [OwlGram](https://github.com/OwlGramDev/OwlGram)

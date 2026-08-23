@@ -7699,6 +7699,7 @@ public class MessagesController extends BaseController implements NotificationCe
                     }
                 }
             }
+            return null;
         }
         return array.get(uid);
     }
@@ -7716,6 +7717,7 @@ public class MessagesController extends BaseController implements NotificationCe
                     }
                 }
             }
+            return false;
         }
         final TLRPC.ChannelParticipant participant = array.get(uid);
         return participant instanceof TLRPC.TL_channelParticipantAdmin || participant instanceof TLRPC.TL_channelParticipantCreator;
@@ -7736,6 +7738,7 @@ public class MessagesController extends BaseController implements NotificationCe
                     }
                 }
             }
+            return false;
         }
         final TLRPC.ChannelParticipant participant = array.get(uid);
         return participant instanceof TLRPC.TL_channelParticipantCreator;
@@ -19893,6 +19896,12 @@ public class MessagesController extends BaseController implements NotificationCe
                 final long dialogId = MessageObject.getDialogId(convertedMessage);
                 final boolean isDialogCreated = false;
                 MessageObject obj = new MessageObject(currentAccount, convertedMessage, usersDict, chatsDict, isDialogCreated, isDialogCreated);
+
+                if (MessagesStorage.isValidKeyboardToSave(convertedMessage)) {
+                    getMessagesStorage().getStorageQueue().postRunnable(() -> {
+                        getMediaDataController().putBotKeyboard(MessagesStorage.TopicKey.of(dialogId, 0), convertedMessage);
+                    });
+                }
 
                 if (ephemeralMessages == null) {
                     ephemeralMessages = new LongSparseArray<>();

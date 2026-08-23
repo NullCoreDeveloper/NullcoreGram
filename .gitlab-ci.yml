@@ -29,11 +29,10 @@ default:
   git submodule sync
   git submodule update --init --force 'TMessagesProj/jni/*'
 
-  git submodule status TMessagesProj/jni/ffmpeg > ffmpeg_status
-  git submodule status TMessagesProj/jni/libvpx >> ffmpeg_status
-  cat TMessagesProj/jni/*ffmpeg*.sh >> ffmpeg_status
-  cat TMessagesProj/jni/*libvpx*.sh >> ffmpeg_status
-  cat TMessagesProj/jni/patches/ffmpeg/* >> ffmpeg_status
+  git submodule status TMessagesProj/jni/third_party/ffmpeg > ffmpeg_status
+  git submodule status TMessagesProj/jni/third_party/libvpx >> ffmpeg_status
+  git submodule status TMessagesProj/jni/third_party/dav1d >> ffmpeg_status
+  cat TMessagesProj/jni/third_party/build_*.sh >> ffmpeg_status
   cp ffmpeg_status libvpx_status
 
   git submodule status TMessagesProj/jni/boringssl > boringssl_status
@@ -82,7 +81,6 @@ cache-probe:
     - key: "ffmpeg-libvpx-${FFMPEG_KEY}-${LIBVPX_KEY}"
       paths:
         - TMessagesProj/jni/ffmpeg/build/
-        - TMessagesProj/jni/libvpx/build/
       policy: pull
     - key: "boringssl-${BORINGSSL_KEY}"
       paths:
@@ -124,7 +122,7 @@ native-pipeline:
 
 build:
   stage: build
-  image: registry.gitlab.com/xtao-labs/android-ndk:35-jdk17.0.18_8-ndk27.2.12479018-cmake3.22.1-ci
+  image: registry.gitlab.com/xtao-labs/android-ndk:35-jdk17.0.19_10-ndk27.2.12479018-cmake3.22.1-ci
   needs:
     - job: fingerprint
       artifacts: true
@@ -144,7 +142,7 @@ build:
         - TMessagesProj/src/main/libs/arm64-v8a/
       policy: pull
   script:
-    - sed -i "s/2000000000000/$(date +%s%3N)/g" gradle.properties
+    - sed -i "s/2000000000000/$(date +%s%N | cut -c1-13)/g" gradle.properties
     - export GRADLE_USER_HOME="$CI_PROJECT_DIR/.gradle-cache"
     - export LOCAL_PROPERTIES="${LOCAL_PROPERTIES}"
     - ./gradlew TMessagesProj:assembleRelease --build-cache --no-configuration-cache

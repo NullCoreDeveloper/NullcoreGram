@@ -982,6 +982,12 @@ object NaConfig {
             ConfigItem.configTypeBool,
             false
         )
+    val useSystemPhotoPicker =
+        addConfig(
+            "UseSystemPhotoPicker",
+            ConfigItem.configTypeBool,
+            false
+        )
     var tabStyle =
         addConfig(
             "TabStyle",
@@ -1306,6 +1312,18 @@ object NaConfig {
             "ExtendedFeatureUnlockedToken",
             ConfigItem.configTypeString,
             ""
+        )
+    val disableAiEditor =
+        addConfig(
+            "DisableAiEditor",
+            ConfigItem.configTypeBool,
+            false
+        )
+    val disableGlareEffects =
+        addConfig(
+            "DisableGlareEffects",
+            ConfigItem.configTypeBool,
+            false
         )
 
     private fun addConfig(

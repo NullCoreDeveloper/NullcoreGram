@@ -2765,6 +2765,9 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                     if (!photosEnabled && !videosEnabled) {
                         showLayout(restrictedLayout = new ChatAttachRestrictedLayout(1, this, getContext(), resourcesProvider));
                     }
+                    if ((photosEnabled || videosEnabled) && NaConfig.INSTANCE.getUseSystemPhotoPicker().Bool() && photoLayout.openSystemPhotoPicker()) {
+                        return;
+                    }
                     showLayout(photoLayout);
                 } else if (num == 3) {
                     if (!musicEnabled && checkCanRemoveRestrictionsByBoosts()) {
@@ -6479,7 +6482,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
 
     private boolean shownAiButton;
     private void showAiButton(boolean show_) {
-        final boolean show = show_ && (baseFragment instanceof ChatActivity && !((ChatActivity) baseFragment).isSecretChat());
+        final boolean show = show_ && (baseFragment instanceof ChatActivity && !((ChatActivity) baseFragment).isSecretChat()) && !NaConfig.INSTANCE.getDisableAiEditor().Bool();
 
         if (shownAiButton == show) return;
         if (show) {

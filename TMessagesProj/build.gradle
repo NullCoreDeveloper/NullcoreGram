@@ -5,7 +5,7 @@ apply plugin: "org.jetbrains.kotlin.plugin.serialization"
 apply plugin: "io.objectbox"
 
 def verName = APP_VERSION_NAME
-def verCode = 1242
+def verCode = 1244
 
 
 def officialVer = APP_VERSION_NAME
@@ -297,8 +297,8 @@ dependencies {
         exclude group: 'androidx.recyclerview', module: "recyclerview"
     }
 
-    implementation 'androidx.car.app:app:1.4.0'
-    implementation 'androidx.car.app:app-projected:1.4.0'
+    implementation 'androidx.car.app:app:1.7.0'
+    implementation 'androidx.car.app:app-projected:1.7.0'
     implementation 'org.nanohttpd:nanohttpd:2.3.1'
 
     compileOnly 'org.checkerframework:checker-qual:2.5.2'
