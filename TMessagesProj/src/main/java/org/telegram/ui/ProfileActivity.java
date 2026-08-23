@@ -7767,7 +7767,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         } else if (position == noteRow) {
 
         } else if (position == userIdRow) {
-            long id = user != null ? user.id : chat != null ? chat.id : 0;
+            long id = userId != 0 ? userId : chatId;
             if (id != 0) {
                 AndroidUtilities.addToClipboard(String.valueOf(id));
                 BulletinFactory.of(this).createCopyBulletin("ID скопирован").show();
@@ -11188,7 +11188,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 if (!isBot && (hasPhone || !hasInfo) && !hideNumber) {
                     phoneRow = rowCount++;
                 }
-                if (user != null || chat != null) {
+                if (userId != 0 || chatId != 0) {
                     userIdRow = rowCount++;
                 }
                 if (userInfo != null && !TextUtils.isEmpty(userInfo.about)) {
@@ -14083,7 +14083,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             containsGift = !myProfile && today && !getMessagesController().premiumPurchaseBlocked();
                         }
                     } else if (position == userIdRow) {
-                        long id = user != null ? user.id : chat != null ? chat.id : 0;
+                        long id = userId != 0 ? userId : chatId;
                         if (id != 0) {
                             detailCell.setTextAndValue(String.valueOf(id), "ID", false);
                         }
@@ -16979,7 +16979,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             if (textToCopy != null) textToCopy = "@" + textToCopy;
             copyButton = getString(R.string.ProfileCopyUsername);
         } else if (position == userIdRow) {
-            long id = user != null ? user.id : chat != null ? chat.id : 0;
+            long id = userId != 0 ? userId : chatId;
             if (id != 0) {
                 AndroidUtilities.addToClipboard(String.valueOf(id));
                 BulletinFactory.of(this).createCopyBulletin("ID скопирован").show();

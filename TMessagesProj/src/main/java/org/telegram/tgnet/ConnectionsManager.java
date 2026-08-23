@@ -1089,6 +1089,12 @@ public class ConnectionsManager extends BaseController {
             _secret = secret;
         }
 
+        if (enabled && "webproxy".equals(secret)) {
+            WebProxyManager.INSTANCE.start(address);
+        } else {
+            WebProxyManager.INSTANCE.stop();
+        }
+
         for (int a : SharedConfig.activeAccounts) {
             if (enabled && !TextUtils.isEmpty(address)) {
                 native_setProxySettings(a, address, port, username, password, secret);
@@ -1177,6 +1183,10 @@ public class ConnectionsManager extends BaseController {
     public static native void native_receivedCaptchaResult(int currentAccount, int[] requestTokens, String token);
     public static native boolean native_isGoodPrime(byte[] prime, int g);
 
+    public static native void native_startWebProxy(String proxyHost);
+    public static native void native_stopWebProxy();
+    public static native int native_getWebProxyPort();
+    public static native String native_getWebProxyToken();
 
     public static boolean testNativeTlScheme(NativeByteBuffer buffer, INativeTlTest test) {
         return test.test(buffer.address);
