@@ -4598,6 +4598,21 @@ public class AndroidUtilities {
                                     user = data.getQueryParameter("user");
                                     password = data.getQueryParameter("pass");
                                     secret = data.getQueryParameter("secret");
+                                } else if (path.startsWith("/webproxy")) {
+                                    // https://t.me/webproxy?server=HOST&secret=SECRET
+                                    address = data.getQueryParameter("server");
+                                    if (AndroidUtilities.checkHostForPunycode(address)) {
+                                        address = IDN.toASCII(address, IDN.ALLOW_UNASSIGNED);
+                                    }
+                                    port = data.getQueryParameter("port");
+                                    if (TextUtils.isEmpty(port)) {
+                                        port = "443";
+                                    }
+                                    String webSecret = data.getQueryParameter("secret");
+                                    if (!TextUtils.isEmpty(webSecret)) {
+                                        address = address + "/" + webSecret;
+                                    }
+                                    secret = "webproxy";
                                 }
                             }
                         }

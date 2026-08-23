@@ -222,13 +222,18 @@ public class ProxySettingsActivity extends BaseFragment {
                         currentProxyInfo.username = "";
                         currentProxyInfo.password = "";
                     } else if (currentType == 2) {
+                        String baseAddr = inputFields[FIELD_IP].getText().toString();
+                        // Убираем старый секрет из адреса, если есть.
+                        int slashIdx = baseAddr.indexOf('/');
+                        if (slashIdx != -1) {
+                            baseAddr = baseAddr.substring(0, slashIdx);
+                        }
                         String secret = inputFields[FIELD_SECRET].getText().toString();
-                        if (!TextUtils.isEmpty(secret) && !"webproxy".equals(secret)) {
-                            if (currentProxyInfo.address != null && currentProxyInfo.address.contains("/?secret=")) {
-                                currentProxyInfo.address = currentProxyInfo.address.substring(0, currentProxyInfo.address.indexOf("/?secret=")) + "/?secret=" + secret;
-                            } else {
-                                currentProxyInfo.address = currentProxyInfo.address + "/?secret=" + secret;
-                            }
+                        if (!TextUtils.isEmpty(secret)) {
+                            // Секрет — часть пути: HOST/SECRET
+                            currentProxyInfo.address = baseAddr + "/" + secret;
+                        } else {
+                            currentProxyInfo.address = baseAddr;
                         }
                         currentProxyInfo.secret = "webproxy";
                         currentProxyInfo.username = "";
@@ -578,10 +583,13 @@ public class ProxySettingsActivity extends BaseFragment {
         if ("webproxy".equals(currentProxyInfo.secret)) {
             String addr = currentProxyInfo.address;
             String parsedSecret = "";
-            if (addr != null && addr.contains("/?secret=")) {
-                int idx = addr.indexOf("/?secret=");
-                parsedSecret = addr.substring(idx + "/?secret=".length());
-                addr = addr.substring(0, idx);
+            if (addr != null) {
+                // Формат хранения: HOST/SECRET
+                int slashIdx = addr.indexOf('/');
+                if (slashIdx != -1) {
+                    parsedSecret = addr.substring(slashIdx + 1);
+                    addr = addr.substring(0, slashIdx);
+                }
             }
             currentProxyInfo.address = addr;
             currentProxyInfo.secret = parsedSecret;
