@@ -17889,34 +17889,114 @@ public class MessagesController extends BaseController implements NotificationCe
 
     protected void deleteMessagesByPush(long dialogId, ArrayList<Integer> ids, long channelId) {
         getMessagesStorage().getStorageQueue().postRunnable(() -> {
-            AndroidUtilities.runOnUIThread(() -> {
-                getNotificationCenter().postNotificationName(NotificationCenter.messagesDeleted, ids, channelId, false);
-                if (channelId == 0) {
-                    for (int b = 0, size2 = ids.size(); b < size2; b++) {
-                        Integer id = ids.get(b);
-                        MessageObject obj = dialogMessagesByIds.get(id);
-                        if (obj != null) {
-                            obj.deleted = true;
+            final boolean saveDeleted = tw.nekomimi.nekogram.utils.AyuGhostConfig.saveDeletedMessages[currentAccount];
+            final boolean saveTtl = tw.nekomimi.nekogram.utils.AyuGhostConfig.saveTtlMedia[currentAccount];
+
+            ArrayList<Integer> toGhost = new ArrayList<>();
+            ArrayList<Integer> toDelete = new ArrayList<>();
+
+            if (saveDeleted) {
+                toGhost.addAll(ids);
+            } else {
+                if (saveTtl) {
+                    for (int i = 0; i < ids.size(); i++) {
+                        int msgId = ids.get(i);
+                        try {
+                            org.telegram.SQLite.SQLiteCursor cursor = getMessagesStorage().getDatabase().queryFinalized(String.format(Locale.US, "SELECT ttl FROM messages_v2 WHERE mid = %d AND uid = %d LIMIT 1", msgId, dialogId));
+                            if (cursor.next()) {
+                                if (cursor.intValue(0) != 0) {
+                                    toGhost.add(msgId);
+                                } else {
+                                    toDelete.add(msgId);
+                                }
+                            } else {
+                                toDelete.add(msgId);
+                            }
+                            cursor.dispose();
+                        } catch (Exception e) {
+                            FileLog.e(e);
+                            toDelete.add(msgId);
                         }
                     }
                 } else {
-                    ArrayList<MessageObject> objs = dialogMessage.get(-channelId);
-                    if (objs != null) {
-                        for (int i = 0; i < objs.size(); ++i) {
-                            MessageObject obj = objs.get(i);
-                            for (int b = 0, size2 = ids.size(); b < size2; b++) {
-                                if (obj.getId() == ids.get(b)) {
-                                    obj.deleted = true;
-                                    break;
+                    toDelete.addAll(ids);
+                }
+            }
+
+            if (!toGhost.isEmpty()) {
+                for (int i = 0; i < toGhost.size(); i++) {
+                    int msgId = toGhost.get(i);
+                    try {
+                        org.telegram.SQLite.SQLiteCursor cursor = getMessagesStorage().getDatabase().queryFinalized(String.format(Locale.US, "SELECT data, custom_params FROM messages_v2 WHERE mid = %d AND uid = %d LIMIT 1", msgId, dialogId));
+                        if (cursor.next()) {
+                            org.telegram.tgnet.NativeByteBuffer data = cursor.byteBufferValue(0);
+                            if (data != null) {
+                                TLRPC.Message message = TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
+                                message.readAttachPath(data, getUserConfig().clientUserId);
+                                data.reuse();
+                                if (message != null) {
+                                    if (!cursor.isNull(1)) {
+                                        MessageCustomParamsHelper.readLocalParams(message, cursor.byteBufferValue(1));
+                                    }
+                                    if (message.ttl == 0 || saveTtl) {
+                                        message.isAyuDeleted = true;
+                                        if (message.ttl != 0) {
+                                            message.ttl = 0;
+                                            message.destroyTime = 0;
+                                        }
+                                        getMessagesStorage().updateMessageCustomParams(dialogId, message);
+                                        AndroidUtilities.runOnUIThread(() -> {
+                                            MessageObject obj = dialogMessagesByIds.get(msgId);
+                                            if (obj != null) {
+                                                obj.isAyuDeleted = true;
+                                                if (obj.messageOwner.ttl != 0) {
+                                                    obj.messageOwner.ttl = 0;
+                                                    obj.messageOwner.destroyTime = 0;
+                                                }
+                                                getNotificationCenter().postNotificationName(NotificationCenter.replaceMessagesObjects, dialogId, new ArrayList<>(java.util.Collections.singletonList(obj)));
+                                            }
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                        cursor.dispose();
+                    } catch (Exception e) {
+                        FileLog.e(e);
+                    }
+                }
+            }
+
+            if (!toDelete.isEmpty()) {
+                AndroidUtilities.runOnUIThread(() -> {
+                    getNotificationCenter().postNotificationName(NotificationCenter.messagesDeleted, toDelete, channelId, false);
+                    if (channelId == 0) {
+                        for (int b = 0, size2 = toDelete.size(); b < size2; b++) {
+                            Integer id = toDelete.get(b);
+                            MessageObject obj = dialogMessagesByIds.get(id);
+                            if (obj != null) {
+                                obj.deleted = true;
+                            }
+                        }
+                    } else {
+                        ArrayList<MessageObject> objs = dialogMessage.get(-channelId);
+                        if (objs != null) {
+                            for (int i = 0; i < objs.size(); ++i) {
+                                MessageObject obj = objs.get(i);
+                                for (int b = 0, size2 = toDelete.size(); b < size2; b++) {
+                                    if (obj.getId() == toDelete.get(b)) {
+                                        obj.deleted = true;
+                                        break;
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            });
-            getMessagesStorage().deletePushMessages(dialogId, ids);
-            ArrayList<Long> dialogIds = getMessagesStorage().markMessagesAsDeleted(dialogId, ids, false, true, 0, 0);
-            getMessagesStorage().updateDialogsWithDeletedMessages(dialogId, channelId, ids, dialogIds);
+                });
+                getMessagesStorage().deletePushMessages(dialogId, toDelete);
+                ArrayList<Long> dialogIds = getMessagesStorage().markMessagesAsDeleted(dialogId, toDelete, false, true, 0, 0);
+                getMessagesStorage().updateDialogsWithDeletedMessages(dialogId, channelId, toDelete, dialogIds);
+            }
         });
     }
 
