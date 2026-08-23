@@ -268,6 +268,7 @@ private:
     friend class Config;
     friend class FileLog;
     friend class Handshake;
+    friend class WebProxyServer;
 };
 
 #ifdef ANDROID
