@@ -94,7 +94,7 @@ public class ProxySettingsActivity extends BaseFragment {
     private TextSettingsCell shareCell;
     private TextSettingsCell pasteCell;
     private ActionBarMenuItem doneItem;
-    private RadioCell[] typeCell = new RadioCell[2];
+    private RadioCell[] typeCell = new RadioCell[3];
     private int currentType = -1;
 
     private int pasteType = -1;
@@ -217,8 +217,20 @@ public class ProxySettingsActivity extends BaseFragment {
                         currentProxyInfo.secret = "";
                         currentProxyInfo.username = inputFields[FIELD_USER].getText().toString();
                         currentProxyInfo.password = inputFields[FIELD_PASSWORD].getText().toString();
-                    } else {
+                    } else if (currentType == 1) {
                         currentProxyInfo.secret = inputFields[FIELD_SECRET].getText().toString();
+                        currentProxyInfo.username = "";
+                        currentProxyInfo.password = "";
+                    } else if (currentType == 2) {
+                        String secret = inputFields[FIELD_SECRET].getText().toString();
+                        if (!TextUtils.isEmpty(secret) && !"webproxy".equals(secret)) {
+                            if (currentProxyInfo.address != null && currentProxyInfo.address.contains("/?secret=")) {
+                                currentProxyInfo.address = currentProxyInfo.address.substring(0, currentProxyInfo.address.indexOf("/?secret=")) + "/?secret=" + secret;
+                            } else {
+                                currentProxyInfo.address = currentProxyInfo.address + "/?secret=" + secret;
+                            }
+                        }
+                        currentProxyInfo.secret = "webproxy";
                         currentProxyInfo.username = "";
                         currentProxyInfo.password = "";
                     }
@@ -272,14 +284,16 @@ public class ProxySettingsActivity extends BaseFragment {
 
         final View.OnClickListener typeCellClickListener = view -> setProxyType((Integer) view.getTag(), true);
 
-        for (int a = 0; a < 2; a++) {
+        for (int a = 0; a < 3; a++) {
             typeCell[a] = new RadioCell(context);
             typeCell[a].setBackground(Theme.getSelectorDrawable(true));
             typeCell[a].setTag(a);
             if (a == 0) {
                 typeCell[a].setText(LocaleController.getString(R.string.UseProxySocks5), a == currentType, true);
+            } else if (a == 1) {
+                typeCell[a].setText(LocaleController.getString(R.string.UseProxyTelegram), a == currentType, true);
             } else {
-                typeCell[a].setText(LocaleController.getString(R.string.UseProxyTelegram), a == currentType, false);
+                typeCell[a].setText("Use Web Proxy", a == currentType, false);
             }
             linearLayout2.addView(typeCell[a], LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 50));
             typeCell[a].setOnClickListener(typeCellClickListener);
@@ -516,8 +530,8 @@ public class ProxySettingsActivity extends BaseFragment {
                     }
                     params.append("port=").append(URLEncoder.encode(port, "UTF-8"));
                 }
-                if (currentType == 1) {
-                    url = "https://t.me/proxy?";
+                if (currentType == 1 || currentType == 2) {
+                    url = currentType == 2 ? "tg://webproxy?" : "https://t.me/proxy?";
                     if (params.length() != 0) {
                         params.append("&");
                     }
@@ -561,7 +575,22 @@ public class ProxySettingsActivity extends BaseFragment {
         checkShareDone(false);
 
         currentType = -1;
-        setProxyType(TextUtils.isEmpty(currentProxyInfo.secret) ? 0 : 1, false);
+        if ("webproxy".equals(currentProxyInfo.secret)) {
+            String addr = currentProxyInfo.address;
+            String parsedSecret = "";
+            if (addr != null && addr.contains("/?secret=")) {
+                int idx = addr.indexOf("/?secret=");
+                parsedSecret = addr.substring(idx + "/?secret=".length());
+                addr = addr.substring(0, idx);
+            }
+            currentProxyInfo.address = addr;
+            currentProxyInfo.secret = parsedSecret;
+            inputFields[FIELD_IP].setText(addr);
+            inputFields[FIELD_SECRET].setText(parsedSecret);
+            setProxyType(2, false);
+        } else {
+            setProxyType(TextUtils.isEmpty(currentProxyInfo.secret) ? 0 : 1, false);
+        }
 
         pasteType = -1;
         pasteString = null;
@@ -746,7 +775,7 @@ public class ProxySettingsActivity extends BaseFragment {
                 ((View) inputFields[FIELD_SECRET].getParent()).setVisibility(View.GONE);
                 ((View) inputFields[FIELD_PASSWORD].getParent()).setVisibility(View.VISIBLE);
                 ((View) inputFields[FIELD_USER].getParent()).setVisibility(View.VISIBLE);
-            } else if (currentType == 1) {
+            } else if (currentType == 1 || currentType == 2) {
                 bottomCells[0].setVisibility(View.GONE);
                 bottomCells[1].setVisibility(View.VISIBLE);
                 ((View) inputFields[FIELD_SECRET].getParent()).setVisibility(View.VISIBLE);
@@ -755,6 +784,7 @@ public class ProxySettingsActivity extends BaseFragment {
             }
             typeCell[0].setChecked(currentType == 0, animated);
             typeCell[1].setChecked(currentType == 1, animated);
+            typeCell[2].setChecked(currentType == 2, animated);
         }
     }
 
