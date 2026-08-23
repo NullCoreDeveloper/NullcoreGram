@@ -15,24 +15,34 @@ object WebProxyManager {
 
     private var webView: WebView? = null
     private var isRunning = false
+    private var currentProxyHost: String = ""
     private val mainHandler = Handler(Looper.getMainLooper())
 
     fun start(proxyHost: String) {
-        if (isRunning) return
+        // Если уже запущен с тем же хостом — ничего не делаем.
+        if (isRunning && currentProxyHost == proxyHost) return
+
+        // Если хост изменился — останавливаем старый и запускаем новый.
+        if (isRunning) {
+            ConnectionsManager.native_stopWebProxy()
+        }
+
         isRunning = true
+        currentProxyHost = proxyHost
 
         // 1. Start C++ Proxy Server
         ConnectionsManager.native_startWebProxy(proxyHost)
 
-        // 2. Setup WebView on Main Thread
+        // 2. Setup WebView on Main Thread (перезагрузить с новым URL)
         mainHandler.post {
-            setupWebView()
+            setupWebView(forceReload = true)
         }
     }
 
     fun stop() {
         if (!isRunning) return
         isRunning = false
+        currentProxyHost = ""
 
         // 1. Stop C++ Proxy Server
         ConnectionsManager.native_stopWebProxy()
@@ -44,7 +54,7 @@ object WebProxyManager {
     }
 
     @SuppressLint("SetJavaScriptEnabled")
-    private fun setupWebView() {
+    private fun setupWebView(forceReload: Boolean = false) {
         try {
             if (webView == null) {
                 webView = WebView(ApplicationLoader.applicationContext).apply {
@@ -52,13 +62,13 @@ object WebProxyManager {
                     settings.domStorageEnabled = true
                     settings.cacheMode = WebSettings.LOAD_NO_CACHE
                     settings.mediaPlaybackRequiresUserGesture = false
-                    
+
                     webViewClient = object : WebViewClient() {
                         override fun onPageFinished(view: WebView?, url: String?) {
                             FileLog.d("WebProxyManager: WebView finished loading $url")
                         }
                     }
-                    
+
                     webChromeClient = object : WebChromeClient() {
                         override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
                             consoleMessage?.let {
@@ -68,6 +78,10 @@ object WebProxyManager {
                         }
                     }
                 }
+            } else if (forceReload) {
+                // При смене хоста сначала очищаем старый контекст WebView.
+                webView?.stopLoading()
+                webView?.loadUrl("about:blank")
             }
 
             val port = ConnectionsManager.native_getWebProxyPort()

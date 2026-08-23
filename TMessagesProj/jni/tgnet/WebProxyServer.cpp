@@ -82,8 +82,13 @@ WebProxyServer& WebProxyServer::getInstance() {
 }
 
 void WebProxyServer::start(const std::string& h) {
-    // Идемпотентный запуск: если уже запущен с тем же хостом, ничего не делаем.
-    if (listenSocket != -1) return;
+    // Если уже запущен — обновляем хост (WebView перезагрузится с новым HTML),
+    // но сам серверный сокет пересоздавать не нужно: порт и epoll уже готовы.
+    if (listenSocket != -1) {
+        proxyHost = h;
+        token = generateToken(); // новый токен для нового сеанса
+        return;
+    }
 
     listenSocket = ::socket(AF_INET, SOCK_STREAM, 0);
     if (listenSocket < 0) {
