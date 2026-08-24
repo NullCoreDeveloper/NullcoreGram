@@ -357,10 +357,19 @@ class SessionHandler(
 
             val upRequest = upRequestBuilder.build()
 
-            WebProxyManager.client.newCall(upRequest).enqueue(object : Callback {
-                override fun onFailure(call: Call, e: IOException) { Log.e(TAG, "Uplink chunk failed", e) }
-                override fun onResponse(call: Call, response: Response) { response.close() }
-            })
+            try {
+                val response = WebProxyManager.client.newCall(upRequest).execute()
+                val code = response.code
+                response.close()
+                if (code != 204) {
+                    Log.e(TAG, "Uplink chunk rejected: HTTP $code")
+                    println("WEBPROXY_ERROR: Uplink chunk rejected: HTTP $code")
+                    stop()
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Uplink chunk failed", e)
+                stop()
+            }
         }
     }
 
