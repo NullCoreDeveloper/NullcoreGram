@@ -489,6 +489,7 @@ public class SharedConfig {
 
     public static boolean isVpnActive() {
         android.net.ConnectivityManager cm = (android.net.ConnectivityManager) ApplicationLoader.applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (cm == null) return false;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             android.net.Network activeNetwork = cm.getActiveNetwork();
             if (activeNetwork != null) {
