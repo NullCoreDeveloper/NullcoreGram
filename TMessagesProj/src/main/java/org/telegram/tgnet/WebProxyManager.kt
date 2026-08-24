@@ -97,6 +97,71 @@ object WebProxyManager {
                             super.onReceivedError(view, request, error)
                             Log.e(TAG, "WebView.onReceivedError: url=${request?.url} err=${error?.description}")
                         }
+
+                        // Перехватываем ответы от прокси-сервера и убираем
+                        // "frame-ancestors 'none'" из CSP, чтобы iframe мог загрузиться.
+                        override fun shouldInterceptRequest(
+                            view: WebView?,
+                            request: android.webkit.WebResourceRequest?
+                        ): android.webkit.WebResourceResponse? {
+                            val urlStr = request?.url?.toString() ?: return null
+                            // Перехватываем только запросы к внешнему прокси-серверу (iframe).
+                            // Локальные запросы (127.0.0.1) пропускаем без изменений.
+                            if (urlStr.startsWith("http://127.0.0.1") || urlStr.startsWith("about:")) {
+                                return null
+                            }
+                            try {
+                                Log.d(TAG, "intercepting: $urlStr")
+                                val url = java.net.URL(urlStr)
+                                val conn = url.openConnection() as javax.net.HttpURLConnection
+                                conn.connectTimeout = 15_000
+                                conn.readTimeout = 15_000
+                                conn.instanceFollowRedirects = true
+                                // Копируем заголовки запроса из WebView
+                                request.requestHeaders?.forEach { (k, v) ->
+                                    try { conn.setRequestProperty(k, v) } catch (_: Exception) {}
+                                }
+                                conn.connect()
+
+                                // Собираем заголовки ответа, вырезая frame-ancestors из CSP
+                                val responseHeaders = mutableMapOf<String, String>()
+                                conn.headerFields.forEach { (key, values) ->
+                                    if (key == null || values.isNullOrEmpty()) return@forEach
+                                    val joined = values.joinToString(", ")
+                                    if (key.equals("Content-Security-Policy", ignoreCase = true) ||
+                                        key.equals("X-Frame-Options", ignoreCase = true)) {
+                                        // Убираем frame-ancestors и X-Frame-Options полностью
+                                        val cleaned = joined
+                                            .split(";")
+                                            .filter { !it.trim().startsWith("frame-ancestors") }
+                                            .joinToString(";")
+                                            .trim()
+                                        Log.d(TAG, "CSP stripped: '$joined' → '$cleaned'")
+                                        if (cleaned.isNotBlank() && !key.equals("X-Frame-Options", ignoreCase = true)) {
+                                            responseHeaders[key] = cleaned
+                                        }
+                                        // X-Frame-Options удаляем полностью
+                                    } else {
+                                        responseHeaders[key] = joined
+                                    }
+                                }
+
+                                val ct = conn.contentType ?: "text/html"
+                                val mimeType = ct.substringBefore(";").trim().ifBlank { "text/html" }
+                                val encoding = Regex("charset=([^;,\\s]+)").find(ct)?.groupValues?.get(1) ?: "utf-8"
+                                val stream = try { conn.inputStream } catch (_: Exception) { conn.errorStream }
+
+                                Log.d(TAG, "intercepted OK: status=${conn.responseCode} mime=$mimeType enc=$encoding")
+                                return android.webkit.WebResourceResponse(
+                                    mimeType, encoding,
+                                    conn.responseCode, conn.responseMessage ?: "OK",
+                                    responseHeaders, stream
+                                )
+                            } catch (e: Exception) {
+                                Log.e(TAG, "shouldInterceptRequest failed for $urlStr", e)
+                                return null
+                            }
+                        }
                     }
 
                     webChromeClient = object : WebChromeClient() {
