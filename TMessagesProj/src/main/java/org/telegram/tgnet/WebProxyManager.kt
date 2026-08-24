@@ -222,7 +222,7 @@ object WebProxyManager {
     }
 
     private fun handleDownlinkData(batch: ByteArray) {
-        val buffer = ByteBuffer.wrap(batch)
+        val buffer = ByteBuffer.wrap(batch).order(java.nio.ByteOrder.LITTLE_ENDIAN)
         while (buffer.remaining() >= 8) {
             val type = buffer.get().toInt() and 0xFF
             val streamId = ((buffer.get().toInt() and 0xFF) shl 16) or ((buffer.get().toInt() and 0xFF) shl 8) or (buffer.get().toInt() and 0xFF)
@@ -242,7 +242,7 @@ object WebProxyManager {
                             socket.getOutputStream().flush()
                             
                             // Grant WINDOW credit back to server for what we just consumed
-                            val windowPayload = ByteBuffer.allocate(4).putInt(payload.size).array()
+                            val windowPayload = ByteBuffer.allocate(4).order(java.nio.ByteOrder.LITTLE_ENDIAN).putInt(payload.size).array()
                             val windowFrame = createFrame(0x04, streamId, windowPayload)
                             ws?.send(windowFrame.toByteString())
                         } catch (e: Exception) {
@@ -259,7 +259,7 @@ object WebProxyManager {
     }
 
     private fun createFrame(type: Int, streamId: Int, payload: ByteArray): ByteArray {
-        val buf = ByteBuffer.allocate(8 + payload.size)
+        val buf = ByteBuffer.allocate(8 + payload.size).order(java.nio.ByteOrder.LITTLE_ENDIAN)
         buf.put(type.toByte())
         buf.put((streamId ushr 16).toByte())
         buf.put((streamId ushr 8).toByte())
