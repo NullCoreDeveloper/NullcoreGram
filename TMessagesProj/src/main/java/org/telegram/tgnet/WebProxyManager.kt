@@ -29,11 +29,51 @@ object WebProxyManager {
     private val nextSessionId = AtomicInteger(1)
     private val activeSessions = ConcurrentHashMap<Int, SessionHandler>()
 
+    private class DohResolver : Dns {
+        override fun lookup(hostname: String): List<java.net.InetAddress> {
+            try {
+                return Dns.SYSTEM.lookup(hostname)
+            } catch (e: Exception) {
+                Log.w(TAG, "Standard DNS failed for $hostname, trying DoH...")
+            }
+            
+            val endpoints = listOf(
+                "https://cloudflare-dns.com/dns-query?name=$hostname&type=A",
+                "https://dns.google/resolve?name=$hostname&type=A"
+            )
+
+            for (endpoint in endpoints) {
+                try {
+                    val url = java.net.URL(endpoint)
+                    val conn = url.openConnection() as java.net.HttpURLConnection
+                    conn.setRequestProperty("Accept", "application/dns-json")
+                    conn.connectTimeout = 5000
+                    conn.readTimeout = 5000
+                    if (conn.responseCode == 200) {
+                        val body = conn.inputStream.bufferedReader().use { it.readText() }
+                        val addresses = mutableListOf<java.net.InetAddress>()
+                        val matcher = Pattern.compile("\"data\":\"([0-9.]+)\"").matcher(body)
+                        while (matcher.find()) {
+                            addresses.add(java.net.InetAddress.getByName(matcher.group(1)))
+                        }
+                        if (addresses.isNotEmpty()) return addresses
+                    }
+                } catch (e: Exception) {
+                    Log.w(TAG, "DoH endpoint $endpoint failed", e)
+                }
+            }
+            
+            Log.e(TAG, "All DNS and DoH resolution failed for $hostname")
+            throw java.net.UnknownHostException(hostname)
+        }
+    }
+
     internal val client = OkHttpClient.Builder()
         // Reduced connect timeout for faster failover
         .connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
         .readTimeout(0, java.util.concurrent.TimeUnit.MILLISECONDS)
         .writeTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+        .dns(DohResolver())
         .build()
 
     @Synchronized
@@ -64,7 +104,14 @@ object WebProxyManager {
                 if (secret.isEmpty()) throw Exception("No secret provided")
 
                 // 1. Derive bridge capability
-                val secretBytes = hexStringToByteArray(secret)
+                var secretBytes = hexStringToByteArray(secret)
+                if (secretBytes.size > 16) {
+                    val firstByte = secretBytes[0].toInt() and 0xFF
+                    if (firstByte == 0xee || firstByte == 0xdd) {
+                        secretBytes = secretBytes.copyOfRange(1, 17)
+                    }
+                }
+
                 val context = "tdesktop-web-proxy-bridge-v1\n$hostname".toByteArray(Charsets.UTF_8)
                 val mac = Mac.getInstance("HmacSHA256")
                 mac.init(SecretKeySpec(secretBytes, "HmacSHA256"))
