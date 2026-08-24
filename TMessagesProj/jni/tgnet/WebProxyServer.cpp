@@ -427,12 +427,9 @@ bool WebProxyServer::doHttpHandshake(const std::string& request) {
 
         writeClient(reinterpret_cast<const uint8_t*>(response.c_str()), response.length());
         wsHandshakeDone = true;
-        if (LOGS_ENABLED) DEBUG_D("WebProxyServer: WebSocket handshake done");
-
-        // Уведомляем все зарегистрированные стримы об установке соединения.
-        for (auto& kv : streams) {
-            kv.second->onWebProxyConnected();
-        }
+        if (LOGS_ENABLED) DEBUG_D("WebProxyServer: WebSocket handshake done, waiting for bridge status...");
+        // НЕ вызываем onWebProxyConnected() здесь!
+        // Ждём status={'connected'} от JS, когда реальный туннель до прокси-сервера будет готов.
         return true;
 
     } else if (request.find("GET /") != std::string::npos) {
@@ -523,15 +520,34 @@ void WebProxyServer::processWsFrames() {
             closeClient();
             return;
         } else if (opcode == 1) {
-            // Text frame — JSON фрейм управления (auth от WebProxy JS скрипта)
+            // Text frame — JSON фрейм управления (auth/status от WebProxy JS скрипта)
             if (payloadLen > 0) {
                 std::string textMsg(reinterpret_cast<const char*>(recvBuffer.data() + headerLen), static_cast<size_t>(payloadLen));
                 if (LOGS_ENABLED) DEBUG_D("WebProxyServer: received text msg: %s", textMsg.c_str());
+
                 if (textMsg.find("\"auth\"") != std::string::npos) {
+                    // JS запрашивает bridge URL. Генерируем и отправляем.
                     std::string bridgeUrl = "https://" + proxyHost + "/?bridge=" + token;
                     std::string bridgeResp = "{\"t\":\"bridge\",\"url\":\"" + bridgeUrl + "\"}";
                     if (LOGS_ENABLED) DEBUG_D("WebProxyServer: sending bridge resp: %s", bridgeResp.c_str());
                     sendTextMessage(bridgeResp);
+
+                } else if (textMsg.find("\"status\"") != std::string::npos) {
+                    // Статусное сообщение от iframe через JS.
+                    // Возможные состояния: 'connected', 'failed', 'connecting'
+                    if (textMsg.find("\"connected\"") != std::string::npos) {
+                        if (LOGS_ENABLED) DEBUG_D("WebProxyServer: bridge CONNECTED, notifying streams");
+                        // Туннель готов — теперь разрешаем стримам отправлять данные.
+                        for (auto& kv : streams) {
+                            kv.second->onWebProxyConnected();
+                        }
+                    } else if (textMsg.find("\"failed\"") != std::string::npos) {
+                        if (LOGS_ENABLED) DEBUG_E("WebProxyServer: bridge FAILED, closing streams");
+                        closeClient();
+                        return;
+                    } else {
+                        if (LOGS_ENABLED) DEBUG_D("WebProxyServer: bridge status: connecting...");
+                    }
                 }
             }
         } else if (opcode == 2) {
