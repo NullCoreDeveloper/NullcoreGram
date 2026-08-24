@@ -182,23 +182,55 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                 String secret = currentInfo.secret;
                 String url;
                 try {
-                    if (!TextUtils.isEmpty(address)) {
-                        params.append("server=").append(URLEncoder.encode(address, "UTF-8"));
-                    }
-                    if (!TextUtils.isEmpty(port)) {
-                        if (params.length() != 0) {
-                            params.append("&");
+                    if ("webproxy".equals(secret)) {
+                        url = "https://t.me/webproxy?";
+                        String realSecret = "";
+                        int slashIdx = address.indexOf('/');
+                        if (slashIdx != -1) {
+                            realSecret = address.substring(slashIdx + 1);
+                            address = address.substring(0, slashIdx);
                         }
-                        params.append("port=").append(URLEncoder.encode(port, "UTF-8"));
-                    }
-                    if (!TextUtils.isEmpty(currentInfo.secret)) {
+                        if (!TextUtils.isEmpty(address)) {
+                            params.append("server=").append(URLEncoder.encode(address, "UTF-8"));
+                        }
+                        if (!TextUtils.isEmpty(port)) {
+                            if (params.length() != 0) {
+                                params.append("&");
+                            }
+                            params.append("port=").append(URLEncoder.encode(port, "UTF-8"));
+                        }
+                        if (!TextUtils.isEmpty(realSecret)) {
+                            if (params.length() != 0) {
+                                params.append("&");
+                            }
+                            params.append("secret=").append(URLEncoder.encode(realSecret, "UTF-8"));
+                        }
+                    } else if (!TextUtils.isEmpty(secret)) {
                         url = "https://t.me/proxy?";
+                        if (!TextUtils.isEmpty(address)) {
+                            params.append("server=").append(URLEncoder.encode(address, "UTF-8"));
+                        }
+                        if (!TextUtils.isEmpty(port)) {
+                            if (params.length() != 0) {
+                                params.append("&");
+                            }
+                            params.append("port=").append(URLEncoder.encode(port, "UTF-8"));
+                        }
                         if (params.length() != 0) {
                             params.append("&");
                         }
                         params.append("secret=").append(URLEncoder.encode(secret, "UTF-8"));
                     } else {
                         url = "https://t.me/socks?";
+                        if (!TextUtils.isEmpty(address)) {
+                            params.append("server=").append(URLEncoder.encode(address, "UTF-8"));
+                        }
+                        if (!TextUtils.isEmpty(port)) {
+                            if (params.length() != 0) {
+                                params.append("&");
+                            }
+                            params.append("port=").append(URLEncoder.encode(port, "UTF-8"));
+                        }
                         if (!TextUtils.isEmpty(user)) {
                             if (params.length() != 0) {
                                 params.append("&");
