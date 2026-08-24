@@ -69,6 +69,7 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity {
     private int categories2Row;
 
     private int aboutRow;
+    private int nullCoreRow;
     private int channelRow;
     private int channelTipsRow;
     private int sourceCodeRow;
@@ -110,6 +111,8 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity {
             presentFragment(new NekoGhostModeActivity());
         } else if (position == debugRow) {
             presentFragment(new NekoDebugSettingsActivity());
+        } else if (position == nullCoreRow) {
+            Browser.openUrl(getParentActivity(), "https://t.me/NullCoreDeveloper");
         } else if (position == channelRow) {
             getMessagesController().openByUserName(channelUsername, this, 1);
         } else if (position == channelTipsRow) {
@@ -176,6 +179,7 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity {
         categories2Row = addRow();
 
         aboutRow = addRow("about");
+        nullCoreRow = addRow("nullCore");
         channelRow = addRow("channel");
         channelTipsRow = addRow("channelTips");
         sourceCodeRow = addRow("sourceCode");
@@ -202,7 +206,9 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity {
             switch (holder.getItemViewType()) {
                 case TYPE_SETTINGS: {
                     TextSettingsCell textCell = (TextSettingsCell) holder.itemView;
-                    if (position == channelRow) {
+                    if (position == nullCoreRow) {
+                        textCell.setTextAndValue("NullCore Projects", "@NullCoreDeveloper", divider);
+                    } else if (position == channelRow) {
                         textCell.setTextAndValue(LocaleController.getString(R.string.OfficialChannel), "@" + channelUsername, divider);
                     } else if (position == channelTipsRow) {
                         textCell.setTextAndValue(LocaleController.getString(R.string.TipsChannel), "@" + channelUsernameTips, divider);
@@ -264,7 +270,7 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity {
                 return TYPE_HEADER;
             } else if (position > categoriesRow && position < categories2Row) {
                 return TYPE_TEXT;
-            } else if (position >= channelRow && position < about2Row) {
+            } else if (position >= nullCoreRow && position < about2Row) {
                 return TYPE_SETTINGS;
             } else if (position >= importSettingsRow && position < settings2Row) {
                 return TYPE_SETTINGS;
