@@ -591,8 +591,6 @@ public class ProxySettingsActivity extends BaseFragment {
                     addr = addr.substring(0, slashIdx);
                 }
             }
-            currentProxyInfo.address = addr;
-            currentProxyInfo.secret = parsedSecret;
             inputFields[FIELD_IP].setText(addr);
             inputFields[FIELD_SECRET].setText(parsedSecret);
             setProxyType(2, false);
