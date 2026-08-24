@@ -113,7 +113,7 @@ object WebProxyManager {
                             try {
                                 Log.d(TAG, "intercepting: $urlStr")
                                 val url = java.net.URL(urlStr)
-                                val conn = url.openConnection() as javax.net.HttpURLConnection
+                                val conn = url.openConnection() as java.net.HttpURLConnection
                                 conn.connectTimeout = 15_000
                                 conn.readTimeout = 15_000
                                 conn.instanceFollowRedirects = true
@@ -125,8 +125,10 @@ object WebProxyManager {
 
                                 // Собираем заголовки ответа, вырезая frame-ancestors из CSP
                                 val responseHeaders = mutableMapOf<String, String>()
-                                conn.headerFields.forEach { (key, values) ->
-                                    if (key == null || values.isNullOrEmpty()) return@forEach
+                                conn.headerFields?.entries?.forEach { entry ->
+                                    val key = entry.key ?: return@forEach
+                                    val values = entry.value
+                                    if (values.isNullOrEmpty()) return@forEach
                                     val joined = values.joinToString(", ")
                                     if (key.equals("Content-Security-Policy", ignoreCase = true) ||
                                         key.equals("X-Frame-Options", ignoreCase = true)) {
