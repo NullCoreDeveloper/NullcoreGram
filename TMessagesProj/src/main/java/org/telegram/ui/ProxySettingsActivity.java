@@ -213,6 +213,9 @@ public class ProxySettingsActivity extends BaseFragment {
                     }
                     currentProxyInfo.address = inputFields[FIELD_IP].getText().toString();
                     currentProxyInfo.port = Utilities.parseInt(inputFields[FIELD_PORT].getText().toString());
+                    if (currentType == 2 && currentProxyInfo.port == 0) {
+                        currentProxyInfo.port = 443;
+                    }
                     if (currentType == 0) {
                         currentProxyInfo.secret = "";
                         currentProxyInfo.username = inputFields[FIELD_USER].getText().toString();
@@ -727,7 +730,8 @@ public class ProxySettingsActivity extends BaseFragment {
         if (shareCell == null || doneItem == null || inputFields[FIELD_IP] == null || inputFields[FIELD_PORT] == null) {
             return;
         }
-        setShareDoneEnabled(inputFields[FIELD_IP].length() != 0 && Utilities.parseInt(inputFields[FIELD_PORT].getText().toString()) != 0, animated);
+        boolean portValid = currentType == 2 || Utilities.parseInt(inputFields[FIELD_PORT].getText().toString()) != 0;
+        setShareDoneEnabled(inputFields[FIELD_IP].length() != 0 && portValid, animated);
     }
 
     private void setProxyType(int type, boolean animated) {
@@ -778,12 +782,21 @@ public class ProxySettingsActivity extends BaseFragment {
             if (currentType == 0) {
                 bottomCells[0].setVisibility(View.VISIBLE);
                 bottomCells[1].setVisibility(View.GONE);
+                ((View) inputFields[FIELD_PORT].getParent()).setVisibility(View.VISIBLE);
                 ((View) inputFields[FIELD_SECRET].getParent()).setVisibility(View.GONE);
                 ((View) inputFields[FIELD_PASSWORD].getParent()).setVisibility(View.VISIBLE);
                 ((View) inputFields[FIELD_USER].getParent()).setVisibility(View.VISIBLE);
-            } else if (currentType == 1 || currentType == 2) {
+            } else if (currentType == 1) {
                 bottomCells[0].setVisibility(View.GONE);
                 bottomCells[1].setVisibility(View.VISIBLE);
+                ((View) inputFields[FIELD_PORT].getParent()).setVisibility(View.VISIBLE);
+                ((View) inputFields[FIELD_SECRET].getParent()).setVisibility(View.VISIBLE);
+                ((View) inputFields[FIELD_PASSWORD].getParent()).setVisibility(View.GONE);
+                ((View) inputFields[FIELD_USER].getParent()).setVisibility(View.GONE);
+            } else if (currentType == 2) {
+                bottomCells[0].setVisibility(View.GONE);
+                bottomCells[1].setVisibility(View.VISIBLE);
+                ((View) inputFields[FIELD_PORT].getParent()).setVisibility(View.GONE);
                 ((View) inputFields[FIELD_SECRET].getParent()).setVisibility(View.VISIBLE);
                 ((View) inputFields[FIELD_PASSWORD].getParent()).setVisibility(View.GONE);
                 ((View) inputFields[FIELD_USER].getParent()).setVisibility(View.GONE);
