@@ -11,7 +11,7 @@
 #include "EventObject.h"
 #include "Connection.h"
 #include "Timer.h"
-#include "WebProxyServer.h"
+
 
 EventObject::EventObject(void *object, EventObjectType type) {
     eventObject = object;
@@ -45,14 +45,7 @@ void EventObject::onEvent(uint32_t events) {
             eventfd_read(eventFd[0], &count);
             break;
         }
-        case EventObjectTypeWebProxyListen: {
-            WebProxyServer::getInstance().onListenEvent(events);
-            break;
-        }
-        case EventObjectTypeWebProxyClient: {
-            WebProxyServer::getInstance().onClientEvent(events);
-            break;
-        }
+
         default:
             break;
     }

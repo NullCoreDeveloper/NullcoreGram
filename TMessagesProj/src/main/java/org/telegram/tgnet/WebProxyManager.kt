@@ -1,223 +1,177 @@
 package org.telegram.tgnet
 
-import android.annotation.SuppressLint
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
-import android.webkit.ConsoleMessage
-import android.webkit.WebChromeClient
-import android.webkit.WebSettings
-import android.webkit.WebView
-import android.webkit.WebViewClient
-import org.telegram.messenger.ApplicationLoader
-import org.telegram.messenger.FileLog
-
-private const val TAG = "WEBPROXY"
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
+import okhttp3.WebSocket
+import okhttp3.WebSocketListener
+import okio.ByteString
+import okio.ByteString.Companion.toByteString
+import java.net.ServerSocket
+import java.net.Socket
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.concurrent.thread
 
 object WebProxyManager {
+    private const val TAG = "WEBPROXY"
 
-    private var webView: WebView? = null
-    private var isRunning = false
-    private var currentProxyHost: String = ""
-    private val mainHandler = Handler(Looper.getMainLooper())
+    private var serverSocket: ServerSocket? = null
+    private var isRunning = AtomicBoolean(false)
+    private var currentHost = ""
+    private var localPort = 0
+    private var proxyThread: Thread? = null
+
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(15, TimeUnit.SECONDS)
+        .readTimeout(0, TimeUnit.MILLISECONDS) 
+        .writeTimeout(15, TimeUnit.SECONDS)
+        .build()
 
     fun start(proxyHost: String) {
-        Log.d(TAG, "start() called: proxyHost=$proxyHost, isRunning=$isRunning, currentHost=$currentProxyHost")
-        // Если уже запущен с тем же хостом — ничего не делаем.
-        if (isRunning && currentProxyHost == proxyHost) {
-            Log.d(TAG, "start() skipped: same host already running")
-            return
-        }
+        if (isRunning.get() && currentHost == proxyHost) return
+        stop()
 
-        // Если хост изменился — останавливаем старый и запускаем новый.
-        if (isRunning) {
-            Log.d(TAG, "start() stopping old proxy before restart")
-            ConnectionsManager.native_stopWebProxy()
-        }
+        currentHost = proxyHost
+        isRunning.set(true)
 
-        isRunning = true
-        currentProxyHost = proxyHost
+        serverSocket = ServerSocket(0, 50, java.net.InetAddress.getByName("127.0.0.1"))
+        localPort = serverSocket!!.localPort
 
-        // 1. Start C++ Proxy Server
-        Log.d(TAG, "start() calling native_startWebProxy($proxyHost)")
-        ConnectionsManager.native_startWebProxy(proxyHost)
-
-        // 2. Setup WebView on Main Thread (перезагрузить с новым URL)
-        mainHandler.post {
-            setupWebView(forceReload = true)
+        proxyThread = thread(start = true, name = "WebProxyAcceptThread") {
+            try {
+                Log.d(TAG, "WebProxy ServerSocket started on port $localPort for host $proxyHost")
+                while (isRunning.get() && !serverSocket!!.isClosed) {
+                    val socket = serverSocket!!.accept()
+                    thread(start = true) {
+                        handleClient(socket, proxyHost)
+                    }
+                }
+            } catch (e: Exception) {
+                if (isRunning.get()) {
+                    Log.e(TAG, "WebProxy ServerSocket error", e)
+                }
+            }
         }
     }
 
     fun stop() {
-        Log.d(TAG, "stop() called, isRunning=$isRunning")
-        if (!isRunning) return
-        isRunning = false
-        currentProxyHost = ""
-
-        // 1. Stop C++ Proxy Server
-        ConnectionsManager.native_stopWebProxy()
-
-        // 2. Destroy/Clear WebView on Main Thread
-        mainHandler.post {
-            clearWebView()
-        }
+        if (!isRunning.compareAndSet(true, false)) return
+        Log.d(TAG, "WebProxy ServerSocket stopping...")
+        currentHost = ""
+        localPort = 0
+        try { serverSocket?.close() } catch (_: Exception) {}
+        serverSocket = null
+        proxyThread?.interrupt()
+        proxyThread = null
     }
 
-    @SuppressLint("SetJavaScriptEnabled")
-    private fun setupWebView(forceReload: Boolean = false) {
+    fun getPort(): Int = localPort
+
+    private fun handleClient(socket: Socket, proxyHost: String) {
         try {
-            Log.d(TAG, "setupWebView() forceReload=$forceReload, webView=${if (webView == null) "null" else "exists"}")
-            if (webView == null) {
-                webView = WebView(ApplicationLoader.applicationContext).apply {
-                    settings.javaScriptEnabled = true
-                    settings.domStorageEnabled = true
-                    settings.cacheMode = WebSettings.LOAD_NO_CACHE
-                    settings.mediaPlaybackRequiresUserGesture = false
-                    settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+            val input = socket.getInputStream()
+            val output = socket.getOutputStream()
 
-                    webViewClient = object : WebViewClient() {
-                        override fun onPageFinished(view: WebView?, url: String?) {
-                            Log.d(TAG, "WebView.onPageFinished: $url")
-                        }
+            socket.soTimeout = 10000
+            val buf = ByteArray(256)
+            
+            // SOCKS5 Handshake Phase 1
+            if (input.read(buf, 0, 2) < 2) return
+            if (buf[0] != 0x05.toByte()) return
+            val methodsCount = buf[1].toInt()
+            if (input.read(buf, 0, methodsCount) < methodsCount) return
+            output.write(byteArrayOf(0x05, 0x00))
+            output.flush()
 
-                        override fun onReceivedSslError(
-                            view: WebView?,
-                            handler: android.webkit.SslErrorHandler?,
-                            error: android.net.http.SslError?
-                        ) {
-                            Log.w(TAG, "WebView.onReceivedSslError: $error — proceeding anyway")
-                            handler?.proceed()
-                        }
-
-                        override fun onReceivedError(
-                            view: WebView?,
-                            request: android.webkit.WebResourceRequest?,
-                            error: android.webkit.WebResourceError?
-                        ) {
-                            super.onReceivedError(view, request, error)
-                            Log.e(TAG, "WebView.onReceivedError: url=${request?.url} err=${error?.description}")
-                        }
-
-                        // Перехватываем ответы от прокси-сервера и убираем
-                        // "frame-ancestors 'none'" из CSP, чтобы iframe мог загрузиться.
-                        override fun shouldInterceptRequest(
-                            view: WebView?,
-                            request: android.webkit.WebResourceRequest?
-                        ): android.webkit.WebResourceResponse? {
-                            val urlStr = request?.url?.toString() ?: return null
-                            // Перехватываем только запросы к внешнему прокси-серверу (iframe).
-                            // Локальные запросы (127.0.0.1) пропускаем без изменений.
-                            if (urlStr.startsWith("http://127.0.0.1") || urlStr.startsWith("about:")) {
-                                return null
-                            }
-                            try {
-                                Log.d(TAG, "intercepting: $urlStr")
-                                val url = java.net.URL(urlStr)
-                                val conn = url.openConnection() as java.net.HttpURLConnection
-                                conn.connectTimeout = 15_000
-                                conn.readTimeout = 15_000
-                                conn.instanceFollowRedirects = true
-                                // Копируем заголовки запроса из WebView
-                                request.requestHeaders?.forEach { (k, v) ->
-                                    try { conn.setRequestProperty(k, v) } catch (_: Exception) {}
-                                }
-                                conn.connect()
-
-                                // Собираем заголовки ответа, вырезая frame-ancestors из CSP
-                                val responseHeaders = mutableMapOf<String, String>()
-                                conn.headerFields?.entries?.forEach { entry ->
-                                    val key = entry.key ?: return@forEach
-                                    val values = entry.value
-                                    if (values.isNullOrEmpty()) return@forEach
-                                    val joined = values.joinToString(", ")
-                                    if (key.equals("Content-Security-Policy", ignoreCase = true) ||
-                                        key.equals("X-Frame-Options", ignoreCase = true)) {
-                                        // Убираем frame-ancestors и X-Frame-Options полностью
-                                        val cleaned = joined
-                                            .split(";")
-                                            .filter { !it.trim().startsWith("frame-ancestors") }
-                                            .joinToString(";")
-                                            .trim()
-                                        Log.d(TAG, "CSP stripped: '$joined' → '$cleaned'")
-                                        if (cleaned.isNotBlank() && !key.equals("X-Frame-Options", ignoreCase = true)) {
-                                            responseHeaders[key] = cleaned
-                                        }
-                                        // X-Frame-Options удаляем полностью
-                                    } else {
-                                        responseHeaders[key] = joined
-                                    }
-                                }
-
-                                val ct = conn.contentType ?: "text/html"
-                                val mimeType = ct.substringBefore(";").trim().ifBlank { "text/html" }
-                                val encoding = Regex("charset=([^;,\\s]+)").find(ct)?.groupValues?.get(1) ?: "utf-8"
-                                val stream = try { conn.inputStream } catch (_: Exception) { conn.errorStream }
-
-                                Log.d(TAG, "intercepted OK: status=${conn.responseCode} mime=$mimeType enc=$encoding")
-                                return android.webkit.WebResourceResponse(
-                                    mimeType, encoding,
-                                    conn.responseCode, conn.responseMessage ?: "OK",
-                                    responseHeaders, stream
-                                )
-                            } catch (e: Exception) {
-                                Log.e(TAG, "shouldInterceptRequest failed for $urlStr", e)
-                                return null
-                            }
-                        }
-                    }
-
-                    webChromeClient = object : WebChromeClient() {
-                        override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
-                            consoleMessage?.let {
-                                Log.d(TAG, "JS[${it.messageLevel()}]: ${it.message()} (${it.sourceId()}:${it.lineNumber()})")
-                            }
-                            return true
-                        }
-                    }
+            // SOCKS5 Handshake Phase 2
+            if (input.read(buf, 0, 4) < 4) return
+            val atyp = buf[3].toInt()
+            when (atyp) {
+                1 -> input.read(buf, 0, 6) 
+                3 -> {
+                    val domainLen = input.read()
+                    input.read(buf, 0, domainLen + 2)
                 }
-            } else if (forceReload) {
-                // При смене хоста сначала очищаем старый контекст WebView.
-                webView?.stopLoading()
-                webView?.loadUrl("about:blank")
+                4 -> input.read(buf, 0, 18) 
+                else -> return
+            }
+            output.write(byteArrayOf(0x05, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00))
+            output.flush()
+
+            socket.soTimeout = 0
+
+            var wsUrl = proxyHost
+            if (!wsUrl.startsWith("ws://") && !wsUrl.startsWith("wss://")) {
+                wsUrl = "wss://$wsUrl"
             }
 
-            // Ожидаем инициализации C++ сервера через polling
-            var attempts = 0
-            val maxAttempts = 50
-            val pollIntervalMs = 20L
+            val parts = proxyHost.split("/")
+            val secret = if (parts.size > 1) parts[1] else ""
 
-            val checkTask = object : Runnable {
-                override fun run() {
-                    val port = ConnectionsManager.native_getWebProxyPort()
-                    Log.d(TAG, "polling C++ port: attempt=$attempts, port=$port")
-                    if (port > 0) {
-                        val token = ConnectionsManager.native_getWebProxyToken()
-                        val url = "http://127.0.0.1:$port/#$token"
-                        Log.d(TAG, "C++ server ready: port=$port, token=$token")
-                        Log.d(TAG, "Loading URL: $url")
-                        webView?.loadUrl(url)
-                    } else if (attempts < maxAttempts) {
-                        attempts++
-                        mainHandler.postDelayed(this, pollIntervalMs)
-                    } else {
-                        Log.e(TAG, "TIMEOUT: C++ server did not start in ${maxAttempts * pollIntervalMs}ms")
+            val request = Request.Builder()
+                .url(wsUrl)
+                .apply {
+                    if (secret.isNotEmpty()) {
+                        addHeader("X-Telegram-Proxy", secret)
                     }
                 }
+                .build()
+
+            var ws: WebSocket? = null
+            val latch = CountDownLatch(1)
+            var connected = false
+
+            val wsListener = object : WebSocketListener() {
+                override fun onOpen(webSocket: WebSocket, response: Response) {
+                    ws = webSocket
+                    connected = true
+                    latch.countDown()
+                }
+                override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
+                    try {
+                        output.write(bytes.toByteArray())
+                        output.flush()
+                    } catch (e: Exception) {
+                        webSocket.cancel()
+                    }
+                }
+                override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+                    try { socket.close() } catch (_: Exception) {}
+                }
+                override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+                    try { socket.close() } catch (_: Exception) {}
+                    latch.countDown()
+                }
             }
-            mainHandler.post(checkTask)
 
-        } catch (e: Exception) {
-            Log.e(TAG, "setupWebView exception", e)
-        }
-    }
+            client.newWebSocket(request, wsListener)
 
-    private fun clearWebView() {
-        try {
-            webView?.loadUrl("about:blank")
-            Log.d(TAG, "clearWebView() done")
+            latch.await(15, TimeUnit.SECONDS)
+
+            if (!connected) {
+                socket.close()
+                return
+            }
+
+            val relayBuf = ByteArray(8192)
+            while (isRunning.get() && !socket.isClosed) {
+                val read = input.read(relayBuf)
+                if (read < 0) break 
+                if (read > 0) {
+                    ws?.send(relayBuf.toByteString(0, read))
+                }
+            }
+
+            ws?.close(1000, "Client disconnect")
+            socket.close()
         } catch (e: Exception) {
-            Log.e(TAG, "clearWebView exception", e)
+            if (isRunning.get()) {
+                Log.e(TAG, "Error handling client", e)
+            }
+            try { socket.close() } catch (ignore: Exception) {}
         }
     }
 }
-

@@ -1097,7 +1097,11 @@ public class ConnectionsManager extends BaseController {
 
         for (int a : SharedConfig.activeAccounts) {
             if (enabled && !TextUtils.isEmpty(address)) {
-                native_setProxySettings(a, address, port, username, password, secret);
+                if ("webproxy".equals(secret)) {
+                    native_setProxySettings(a, "127.0.0.1", WebProxyManager.INSTANCE.getPort(), "", "", "");
+                } else {
+                    native_setProxySettings(a, address, port, username, password, secret);
+                }
             } else {
                 native_setProxySettings(a, "", 1080, "", "", "");
             }
@@ -1108,7 +1112,11 @@ public class ConnectionsManager extends BaseController {
         }
         if (SharedConfig.loginingAccount != -1) {
             if (enabled && !TextUtils.isEmpty(address)) {
-                native_setProxySettings(SharedConfig.loginingAccount, address, port, username, password, secret);
+                if ("webproxy".equals(secret)) {
+                    native_setProxySettings(SharedConfig.loginingAccount, "127.0.0.1", WebProxyManager.INSTANCE.getPort(), "", "", "");
+                } else {
+                    native_setProxySettings(SharedConfig.loginingAccount, address, port, username, password, secret);
+                }
             } else {
                 native_setProxySettings(SharedConfig.loginingAccount, "", 1080, "", "", "");
             }
@@ -1182,11 +1190,6 @@ public class ConnectionsManager extends BaseController {
     public static native void native_receivedIntegrityCheckClassic(int currentAccount, int requestToken, String nonce, String token);
     public static native void native_receivedCaptchaResult(int currentAccount, int[] requestTokens, String token);
     public static native boolean native_isGoodPrime(byte[] prime, int g);
-
-    public static native void native_startWebProxy(String proxyHost);
-    public static native void native_stopWebProxy();
-    public static native int native_getWebProxyPort();
-    public static native String native_getWebProxyToken();
 
     public static boolean testNativeTlScheme(NativeByteBuffer buffer, INativeTlTest test) {
         return test.test(buffer.address);

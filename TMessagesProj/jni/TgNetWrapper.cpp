@@ -7,7 +7,7 @@
 #include "tgnet/ConnectionSocket.h"
 #include "tgnet/FileLog.h"
 #include "tgnet/Handshake.h"
-#include "tgnet/WebProxyServer.h"
+
 #include <openssl/rand.h>
 #include <openssl/sha.h>
 #include <openssl/bn.h>
@@ -256,30 +256,7 @@ void setProxySettings(JNIEnv *env, jclass c, jint instanceNum, jstring address, 
     }
 }
 
-void startWebProxy(JNIEnv *env, jclass c, jstring proxyHost) {
-    const char *hostStr = env->GetStringUTFChars(proxyHost, 0);
-    std::string hostString = hostStr;
-    ConnectionsManager::getInstance(0).scheduleTask([hostString] {
-        WebProxyServer::getInstance().start(hostString);
-    });
-    if (hostStr != 0) {
-        env->ReleaseStringUTFChars(proxyHost, hostStr);
-    }
-}
 
-void stopWebProxy(JNIEnv *env, jclass c) {
-    ConnectionsManager::getInstance(0).scheduleTask([] {
-        WebProxyServer::getInstance().stop();
-    });
-}
-
-jint getWebProxyPort(JNIEnv *env, jclass c) {
-    return WebProxyServer::getInstance().getPort();
-}
-
-jstring getWebProxyToken(JNIEnv *env, jclass c) {
-    return env->NewStringUTF(WebProxyServer::getInstance().getToken().c_str());
-}
 
 jint getConnectionState(JNIEnv *env, jclass c, jint instanceNum) {
     return ConnectionsManager::getInstance(instanceNum).getConnectionState();
@@ -658,10 +635,6 @@ static JNINativeMethod ConnectionsManagerMethods[] = {
         {"native_receivedIntegrityCheckClassic", "(IILjava/lang/String;Ljava/lang/String;)V", (void *) receivedIntegrityCheckClassic},
         {"native_receivedCaptchaResult", "(I[ILjava/lang/String;)V", (void *) receivedCaptchaResult},
         {"native_isGoodPrime", "([BI)Z", (void *) isGoodPrime},
-        {"native_startWebProxy", "(Ljava/lang/String;)V", (void *) startWebProxy},
-        {"native_stopWebProxy", "()V", (void *) stopWebProxy},
-        {"native_getWebProxyPort", "()I", (void *) getWebProxyPort},
-        {"native_getWebProxyToken", "()Ljava/lang/String;", (void *) getWebProxyToken},
 };
 
 
