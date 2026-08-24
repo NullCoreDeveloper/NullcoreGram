@@ -161,6 +161,58 @@ class SessionHandler(
     private var ws: WebSocket? = null
     private var carrierMode = "https"
 
+    private fun createFrame(type: Int, id: Int, data: ByteArray): ByteArray {
+        val size = data.size
+        val frame = ByteArray(8 + size)
+        frame[0] = type.toByte()
+        frame[1] = (id ushr 16).toByte()
+        frame[2] = (id ushr 8).toByte()
+        frame[3] = id.toByte()
+        frame[4] = (size ushr 24).toByte()
+        frame[5] = (size ushr 16).toByte()
+        frame[6] = (size ushr 8).toByte()
+        frame[7] = size.toByte()
+        System.arraycopy(data, 0, frame, 8, size)
+        return frame
+    }
+
+    private fun processDownlink(body: ByteArray) {
+        var offset = 0
+        while (offset < body.size) {
+            if (body.size - offset < 8) {
+                Log.e(TAG, "Incomplete frame header")
+                println("WEBPROXY_ERROR: Incomplete frame header")
+                break
+            }
+            val type = body[offset].toInt() and 0xFF
+            val size = ((body[offset + 4].toInt() and 0xFF) shl 24) or
+                       ((body[offset + 5].toInt() and 0xFF) shl 16) or
+                       ((body[offset + 6].toInt() and 0xFF) shl 8) or
+                       (body[offset + 7].toInt() and 0xFF)
+            
+            val end = offset + 8 + size
+            if (size < 0 || size > 1048576 || end > body.size) {
+                Log.e(TAG, "Invalid frame size: $size")
+                println("WEBPROXY_ERROR: Invalid frame size $size")
+                break
+            }
+            
+            if (type == 2) {
+                if (size > 0) {
+                    val output = socket.getOutputStream()
+                    output.write(body, offset + 8, size)
+                    output.flush()
+                }
+            } else if (type == 3) {
+                Log.d(TAG, "Received CLOSE frame")
+                println("WEBPROXY: Received CLOSE frame")
+                stop()
+                break
+            }
+            offset = end
+        }
+    }
+
     fun start() {
         thread(start = true, name = "WebProxySetup_$sessionId") {
             try {
@@ -175,12 +227,14 @@ class SessionHandler(
                 }
                 
                 val firstChunk = buf.copyOfRange(0, read)
-                Log.d(TAG, "Read first chunk of size ${firstChunk.size}")
+                val openFrame = createFrame(1, 1, firstChunk)
+                Log.d(TAG, "Read first chunk of size ${firstChunk.size}, wrapped in OPEN frame")
+                println("WEBPROXY: Read first chunk of size ${firstChunk.size}, wrapped in OPEN frame")
 
                 val sessionRequest = Request.Builder()
                     .url("https://$activeHostname/api/v1/session")
                     .header("Authorization", "Bearer $bootstrapToken")
-                    .post(firstChunk.toRequestBody("application/octet-stream".toMediaType()))
+                    .post(openFrame.toRequestBody("application/octet-stream".toMediaType()))
                     .build()
                 
                 val sessionResponse = WebProxyManager.client.newCall(sessionRequest).execute()
@@ -191,11 +245,11 @@ class SessionHandler(
                 downCursor = sessionResponse.header("X-Down-Cursor") ?: "0"
                 carrierMode = sessionResponse.header("X-Carrier-Mode") ?: "https"
                 Log.d(TAG, "Session created successfully, carrier mode: $carrierMode")
+                println("WEBPROXY: Session created successfully, carrier mode: $carrierMode")
 
                 val welcomeBytes = sessionResponse.body?.bytes()
                 if (welcomeBytes != null && welcomeBytes.isNotEmpty()) {
-                    socket.getOutputStream().write(welcomeBytes)
-                    socket.getOutputStream().flush()
+                    processDownlink(welcomeBytes)
                 }
 
                 if (carrierMode == "websocket") {
@@ -217,9 +271,7 @@ class SessionHandler(
                         }
                         override fun onMessage(webSocket: WebSocket, bytes: okio.ByteString) {
                             try {
-                                val output = socket.getOutputStream()
-                                output.write(bytes.toByteArray())
-                                output.flush()
+                                processDownlink(bytes.toByteArray())
                             } catch (e: Exception) {
                                 stop()
                             }
@@ -259,17 +311,19 @@ class SessionHandler(
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Setup error", e)
+                println("WEBPROXY_ERROR: Setup error ${e.message}")
                 stop()
             }
         }
     }
 
     private fun sendData(data: ByteArray) {
+        val dataFrame = createFrame(2, 1, data)
         if (carrierMode == "websocket") {
-            ws?.send(data.toByteString())
+            ws?.send(dataFrame.toByteString())
         } else {
             synchronized(upLock) {
-                upQueue.addLast(data)
+                upQueue.addLast(dataFrame)
                 upLock.notifyAll()
             }
         }
@@ -317,7 +371,7 @@ class SessionHandler(
                 if (!isRunning.get()) return
                 
                 while (upQueue.isNotEmpty()) {
-                    val frame = upQueue.peekFirst()
+                    val frame = upQueue.peekFirst()!!
                     if (batch.size() > 0 && batch.size() + frame.size > 2000000) break
                     batch.write(upQueue.removeFirst())
                 }
@@ -325,12 +379,17 @@ class SessionHandler(
             if (batch.size() == 0) continue
 
             val seq = upSequence.toString()
-            val request = Request.Builder()
+            val requestBuilder = Request.Builder()
                 .url("https://$activeHostname/api/v1/up")
                 .header("Authorization", "Bearer $sessionToken")
                 .header("X-Up-Seq", seq)
                 .post(batch.toByteArray().toRequestBody("application/octet-stream".toMediaType()))
-                .build()
+            
+            if (carrierMode == "https-lanes") {
+                requestBuilder.header("X-Lane-ID", "1")
+            }
+            
+            val request = requestBuilder.build()
 
             try {
                 val response = WebProxyManager.client.newCall(request).execute()
@@ -338,6 +397,7 @@ class SessionHandler(
                     upSequence++
                 } else {
                     Log.e(TAG, "Uplink rejected: HTTP ${response.code}")
+                    println("WEBPROXY_ERROR: Uplink rejected: HTTP ${response.code}")
                     stop()
                     return
                 }
@@ -354,12 +414,17 @@ class SessionHandler(
 
     private fun pollLoop() {
         while (isRunning.get()) {
-            val request = Request.Builder()
+            val requestBuilder = Request.Builder()
                 .url("https://$activeHostname/api/v1/down")
                 .header("Authorization", "Bearer $sessionToken")
                 .header("X-Down-Cursor", downCursor)
                 .post(ByteArray(0).toRequestBody("application/octet-stream".toMediaType()))
-                .build()
+            
+            if (carrierMode == "https-lanes") {
+                requestBuilder.header("X-Lane-ID", "1")
+            }
+            
+            val request = requestBuilder.build()
 
             try {
                 val response = WebProxyManager.client.newCall(request).execute()
@@ -374,9 +439,7 @@ class SessionHandler(
                     val body = response.body?.bytes()
                     if (body != null && body.isNotEmpty()) {
                         try {
-                            val output = socket.getOutputStream()
-                            output.write(body)
-                            output.flush()
+                            processDownlink(body)
                         } catch (e: Exception) {
                             response.close()
                             stop()
@@ -386,6 +449,7 @@ class SessionHandler(
                     response.close()
                 } else {
                     Log.e(TAG, "Downlink rejected: HTTP ${response.code}")
+                    println("WEBPROXY_ERROR: Downlink rejected: HTTP ${response.code}")
                     response.close()
                     stop()
                     return
