@@ -263,25 +263,12 @@ class SessionHandler(
     fun start() {
         thread(start = true, name = "WebProxySetup_$sessionId") {
             try {
-                val input = socket.getInputStream()
-                val buf = ByteArray(65536)
+                val helloFrame = byteArrayOf(0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01)
                 
-                // Read the very first chunk from TGNet (MTProto obfuscation header)
-                val read = input.read(buf)
-                if (read <= 0) {
-                    stop()
-                    return@thread
-                }
-                
-                val firstChunk = buf.copyOfRange(0, read)
-                val openFrame = createFrame(1, 0, firstChunk)
-                Log.d(TAG, "Read first chunk of size ${firstChunk.size}, wrapped in OPEN frame")
-                println("WEBPROXY: Read first chunk of size ${firstChunk.size}, wrapped in OPEN frame")
-
                 val sessionRequest = Request.Builder()
                     .url("https://$activeHostname/api/v1/session")
                     .header("Authorization", "Bearer $bootstrapToken")
-                    .post(openFrame.toRequestBody("application/octet-stream".toMediaType()))
+                    .post(helloFrame.toRequestBody("application/octet-stream".toMediaType()))
                     .build()
                 
                 val sessionResponse = WebProxyManager.client.newCall(sessionRequest).execute()
@@ -294,10 +281,16 @@ class SessionHandler(
                 Log.d(TAG, "Session created successfully, carrier mode: $carrierMode")
                 println("WEBPROXY: Session created successfully, carrier mode: $carrierMode")
 
-                val welcomeBytes = sessionResponse.body?.bytes()
-                if (welcomeBytes != null && welcomeBytes.isNotEmpty()) {
-                    processDownlink(welcomeBytes)
-                }
+                val input = socket.getInputStream()
+                val buf = ByteArray(65536)
+                val read = input.read(buf)
+                if (read <= 0) throw Exception("Failed to read first chunk from TGNet")
+                
+                val firstChunk = buf.copyOfRange(0, read)
+                val openFrame = createFrame(1, 1, ByteArray(0))
+                val dataFrame = createFrame(2, 1, firstChunk)
+                val combined = openFrame + dataFrame
+                sendDataRaw(combined)
 
                 if (carrierMode == "websocket") {
                     val wsUrl = "wss://$activeHostname/api/v1/ws"
@@ -317,44 +310,29 @@ class SessionHandler(
                             latch.countDown()
                         }
                         override fun onMessage(webSocket: WebSocket, bytes: okio.ByteString) {
-                            try {
-                                processDownlink(bytes.toByteArray())
-                            } catch (e: Exception) {
-                                stop()
-                            }
+                            try { processDownlink(bytes.toByteArray()) } catch (e: Exception) { stop() }
                         }
-                        override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
-                            stop()
-                        }
-                        override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-                            latch.countDown()
-                            stop()
-                        }
+                        override fun onClosed(webSocket: WebSocket, code: Int, reason: String) { stop() }
+                        override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) { latch.countDown(); stop() }
                     }
 
                     WebProxyManager.client.newWebSocket(wsRequest, wsListener)
                     latch.await(15, java.util.concurrent.TimeUnit.SECONDS)
                     if (!connected) throw Exception("WebSocket connection timeout")
                 } else {
-                    upThread = thread(start = true, name = "WebProxyUp_$sessionId") { upLoop() }
-                    pollThread = thread(start = true, name = "WebProxyPoll_$sessionId") { pollLoop() }
+                    // Start poll loop
+                    thread(start = true, name = "WebProxyPoll_$sessionId") { pollLoop() }
                 }
 
-                // Read subsequent chunks from local socket
                 readThread = thread(start = true, name = "WebProxyRead_$sessionId") {
                     try {
                         val buffer = ByteArray(65536)
                         while (isRunning.get() && !socket.isClosed) {
                             val r = socket.getInputStream().read(buffer)
                             if (r < 0) break
-                            if (r > 0) {
-                                sendData(buffer.copyOfRange(0, r))
-                            }
+                            if (r > 0) sendData(buffer.copyOfRange(0, r))
                         }
-                    } catch (e: Exception) {
-                    } finally {
-                        stop()
-                    }
+                    } catch (e: Exception) { } finally { stop() }
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Setup error", e)
@@ -365,14 +343,26 @@ class SessionHandler(
     }
 
     private fun sendData(data: ByteArray) {
-        val dataFrame = createFrame(2, 0, data)
+        val dataFrame = createFrame(2, 1, data)
+        sendDataRaw(dataFrame)
+    }
+
+    private fun sendDataRaw(frameData: ByteArray) {
         if (carrierMode == "websocket") {
-            ws?.send(dataFrame.toByteString())
+            ws?.send(frameData.toByteString())
         } else {
-            synchronized(upLock) {
-                upQueue.addLast(dataFrame)
-                upLock.notifyAll()
-            }
+            val seq = upSequence.incrementAndGet()
+            val upRequest = Request.Builder()
+                .url("https://$activeHostname/api/v1/up")
+                .header("Authorization", "Bearer $sessionToken")
+                .header("X-Up-Seq", seq.toString())
+                .post(frameData.toRequestBody("application/octet-stream".toMediaType()))
+                .build()
+
+            WebProxyManager.client.newCall(upRequest).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) { Log.e(TAG, "Uplink chunk failed", e) }
+                override fun onResponse(call: Call, response: Response) { response.close() }
+            })
         }
     }
 
@@ -382,11 +372,6 @@ class SessionHandler(
         try { socket.close() } catch (_: Exception) {}
         try { ws?.close(1000, "Stop") } catch (_: Exception) {}
         ws = null
-        
-        synchronized(upLock) {
-            upQueue.clear()
-            upLock.notifyAll()
-        }
         
         if (sessionToken.isNotEmpty()) {
             thread(start = true) {
@@ -401,62 +386,8 @@ class SessionHandler(
             }
         }
 
-        upThread?.interrupt()
-        pollThread?.interrupt()
         readThread?.interrupt()
-        
         WebProxyManager.removeSession(sessionId)
-    }
-
-    private fun upLoop() {
-        while (isRunning.get()) {
-            val batch = ByteArrayOutputStream()
-            synchronized(upLock) {
-                while (upQueue.isEmpty() && isRunning.get()) {
-                    try { upLock.wait(1000) } catch (e: InterruptedException) { return }
-                }
-                if (!isRunning.get()) return
-                
-                while (upQueue.isNotEmpty()) {
-                    val frame = upQueue.peekFirst()!!
-                    if (batch.size() > 0 && batch.size() + frame.size > 2000000) break
-                    batch.write(upQueue.removeFirst())
-                }
-            }
-            if (batch.size() == 0) continue
-
-            val seq = upSequence.toString()
-            val requestBuilder = Request.Builder()
-                .url("https://$activeHostname/api/v1/up")
-                .header("Authorization", "Bearer $sessionToken")
-                .header("X-Up-Seq", seq)
-                .post(batch.toByteArray().toRequestBody("application/octet-stream".toMediaType()))
-            
-            if (carrierMode == "https-lanes") {
-                requestBuilder.header("X-Lane-ID", "1")
-            }
-            
-            val request = requestBuilder.build()
-
-            try {
-                val response = WebProxyManager.client.newCall(request).execute()
-                if (response.code == 204 && response.header("X-Up-Ack") == seq) {
-                    upSequence++
-                } else {
-                    Log.e(TAG, "Uplink rejected: HTTP ${response.code}")
-                    println("WEBPROXY_ERROR: Uplink rejected: HTTP ${response.code}")
-                    stop()
-                    return
-                }
-                response.close()
-            } catch (e: Exception) {
-                if (isRunning.get()) {
-                    Log.e(TAG, "Uplink error", e)
-                    stop()
-                }
-                return
-            }
-        }
     }
 
     private fun pollLoop() {
