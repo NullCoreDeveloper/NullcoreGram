@@ -3,6 +3,7 @@ package org.telegram.tgnet
 import android.annotation.SuppressLint
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.webkit.ConsoleMessage
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
@@ -10,6 +11,8 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import org.telegram.messenger.ApplicationLoader
 import org.telegram.messenger.FileLog
+
+private const val TAG = "WEBPROXY"
 
 object WebProxyManager {
 
@@ -19,11 +22,16 @@ object WebProxyManager {
     private val mainHandler = Handler(Looper.getMainLooper())
 
     fun start(proxyHost: String) {
+        Log.d(TAG, "start() called: proxyHost=$proxyHost, isRunning=$isRunning, currentHost=$currentProxyHost")
         // Если уже запущен с тем же хостом — ничего не делаем.
-        if (isRunning && currentProxyHost == proxyHost) return
+        if (isRunning && currentProxyHost == proxyHost) {
+            Log.d(TAG, "start() skipped: same host already running")
+            return
+        }
 
         // Если хост изменился — останавливаем старый и запускаем новый.
         if (isRunning) {
+            Log.d(TAG, "start() stopping old proxy before restart")
             ConnectionsManager.native_stopWebProxy()
         }
 
@@ -31,6 +39,7 @@ object WebProxyManager {
         currentProxyHost = proxyHost
 
         // 1. Start C++ Proxy Server
+        Log.d(TAG, "start() calling native_startWebProxy($proxyHost)")
         ConnectionsManager.native_startWebProxy(proxyHost)
 
         // 2. Setup WebView on Main Thread (перезагрузить с новым URL)
@@ -40,6 +49,7 @@ object WebProxyManager {
     }
 
     fun stop() {
+        Log.d(TAG, "stop() called, isRunning=$isRunning")
         if (!isRunning) return
         isRunning = false
         currentProxyHost = ""
@@ -56,6 +66,7 @@ object WebProxyManager {
     @SuppressLint("SetJavaScriptEnabled")
     private fun setupWebView(forceReload: Boolean = false) {
         try {
+            Log.d(TAG, "setupWebView() forceReload=$forceReload, webView=${if (webView == null) "null" else "exists"}")
             if (webView == null) {
                 webView = WebView(ApplicationLoader.applicationContext).apply {
                     settings.javaScriptEnabled = true
@@ -66,7 +77,7 @@ object WebProxyManager {
 
                     webViewClient = object : WebViewClient() {
                         override fun onPageFinished(view: WebView?, url: String?) {
-                            FileLog.d("WebProxyManager: WebView finished loading $url")
+                            Log.d(TAG, "WebView.onPageFinished: $url")
                         }
 
                         override fun onReceivedSslError(
@@ -74,7 +85,7 @@ object WebProxyManager {
                             handler: android.webkit.SslErrorHandler?,
                             error: android.net.http.SslError?
                         ) {
-                            FileLog.w("WebProxyManager: Ignored SSL error: $error")
+                            Log.w(TAG, "WebView.onReceivedSslError: $error — proceeding anyway")
                             handler?.proceed()
                         }
 
@@ -84,14 +95,14 @@ object WebProxyManager {
                             error: android.webkit.WebResourceError?
                         ) {
                             super.onReceivedError(view, request, error)
-                            FileLog.e("WebProxyManager: WebView error: ${error?.description}")
+                            Log.e(TAG, "WebView.onReceivedError: url=${request?.url} err=${error?.description}")
                         }
                     }
 
                     webChromeClient = object : WebChromeClient() {
                         override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
                             consoleMessage?.let {
-                                FileLog.d("WebProxyManager [JS]: ${it.message()} -- From line ${it.lineNumber()} of ${it.sourceId()}")
+                                Log.d(TAG, "JS[${it.messageLevel()}]: ${it.message()} (${it.sourceId()}:${it.lineNumber()})")
                             }
                             return true
                         }
@@ -111,33 +122,35 @@ object WebProxyManager {
             val checkTask = object : Runnable {
                 override fun run() {
                     val port = ConnectionsManager.native_getWebProxyPort()
+                    Log.d(TAG, "polling C++ port: attempt=$attempts, port=$port")
                     if (port > 0) {
                         val token = ConnectionsManager.native_getWebProxyToken()
                         val url = "http://127.0.0.1:$port/#$token"
-                        FileLog.d("WebProxyManager: C++ server ready on port $port after ${attempts * pollIntervalMs}ms")
-                        FileLog.d("WebProxyManager: Loading Proxy URL: $url")
+                        Log.d(TAG, "C++ server ready: port=$port, token=$token")
+                        Log.d(TAG, "Loading URL: $url")
                         webView?.loadUrl(url)
                     } else if (attempts < maxAttempts) {
                         attempts++
                         mainHandler.postDelayed(this, pollIntervalMs)
                     } else {
-                        FileLog.e("WebProxyManager: Failed to get port from C++ server (timeout)")
+                        Log.e(TAG, "TIMEOUT: C++ server did not start in ${maxAttempts * pollIntervalMs}ms")
                     }
                 }
             }
             mainHandler.post(checkTask)
 
         } catch (e: Exception) {
-            FileLog.e("WebProxyManager: Failed to setup WebView", e)
+            Log.e(TAG, "setupWebView exception", e)
         }
     }
 
     private fun clearWebView() {
         try {
             webView?.loadUrl("about:blank")
-            FileLog.d("WebProxyManager: WebView cleared")
+            Log.d(TAG, "clearWebView() done")
         } catch (e: Exception) {
-            FileLog.e("WebProxyManager: Failed to clear WebView", e)
+            Log.e(TAG, "clearWebView exception", e)
         }
     }
 }
+
