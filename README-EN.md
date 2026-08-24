@@ -2,7 +2,7 @@
 
 ![Views](https://visitor-badge.laobi.icu/badge?page_id=NullCoreDeveloper.Nullcoregram)
 
-NullcoreGram is a hardened, privacy-focused Telegram client based on [NekoX](https://github.com/NekoX-Dev/NekoX) / Nagram, designed for maximum security and anonymity.
+NullcoreGram is an unofficial Telegram client for Android combining features from [AyuGram](https://github.com/AyuGram) and [Nagram](https://github.com/NextAlone/Nagram), with built-in WebProxy protocol support and enhanced privacy features.
 
 - **GitHub Repository**: <https://github.com/NullCoreDeveloper/NullcoreGram>
 - **Releases**: <https://github.com/NullCoreDeveloper/NullcoreGram/releases>
@@ -18,8 +18,8 @@ NullcoreGram is a hardened, privacy-focused Telegram client based on [NekoX](htt
 
 ## 🚀 Inherited Features (from Nagram / NekoX)
 
-- **Proxy Support**: Built-in VMess, Shadowsocks, SSR, Trojan-GFW, IPv6 MTProxy.
-- **Unlimited Accounts**: Login with as many accounts as you need.
+- **Proxy Support**: Built-in WebProxy protocol (HTTPS/WebSocket bridge), proxy auto-rotation, smart proxy bypass on active VPN, plus VMess, Shadowsocks, SSR, Trojan-GFW, and MTProxy support.
+- **AyuGram & Nagram Features**: Message history tracking (anti-delete & edit history), Ghost Mode, and extensive UI customization.
 - **Advanced Chat Management**: Combine messages, editable text style, forced copy, invert reply, undo/redo, scrollable chat preview.
 - **Bypass Restrictions**: Option to ignore Android-only content restrictions (NSFW filter bypass).
 - **Customization**: Custom emoji packs, custom cache directories, Telegram X style menus, and Material Design themes.
@@ -90,6 +90,7 @@ NullcoreGram is configured for secure cloud builds using GitHub Actions. To set 
 
 NullcoreGram is built upon the incredible work of the open-source community. Special thanks to:
 
+- [AyuGram](https://github.com/AyuGram)
 - [NekoX](https://github.com/NekoX-Dev/NekoX)
 - [Nagram](https://github.com/NextAlone/Nagram)
 - [Nekogram](https://gitlab.com/Nekogram/Nekogram)

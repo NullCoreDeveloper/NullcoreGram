@@ -4,7 +4,7 @@
 
 [English version](README-EN.md)
 
-NullcoreGram — это усиленный, ориентированный на приватность неофициальный клиент Telegram, основанный на [NekoX](https://github.com/NekoX-Dev/NekoX) / Nagram. Он разработан с прицелом на максимальную безопасность и анонимность.
+NullcoreGram — это неофициальный клиент Telegram для Android, объединяющий возможности [AyuGram](https://github.com/AyuGram) и [Nagram](https://github.com/NextAlone/Nagram), с встроенной поддержкой протокола WebProxy и расширенными функциями приватности.
 
 - **Репозиторий на GitHub**: <https://github.com/NullCoreDeveloper/NullcoreGram>
 - **Релизы**: <https://github.com/NullCoreDeveloper/NullcoreGram/releases>
@@ -20,8 +20,8 @@ NullcoreGram — это усиленный, ориентированный на 
 
 ## 🚀 Унаследованные функции (от Nagram / NekoX)
 
-- **Поддержка Proxy**: Встроенные VMess, Shadowsocks, SSR, Trojan-GFW, IPv6 MTProxy.
-- **Безлимитные аккаунты**: Авторизуйтесь в стольких аккаунтах, в скольких вам нужно.
+- **Поддержка Proxy**: Встроенный протокол WebProxy (HTTPS/WebSocket bridge), авто-ротация прокси, умное авто-отключение прокси при активном VPN, а также поддержка VMess, Shadowsocks, SSR, Trojan-GFW и MTProxy.
+- **Возможности AyuGram & Nagram**: Сохранение истории удаленных и отредактированных сообщений (анти-удаление), режим невидимки (Ghost Mode) и расширенная кастомизация.
 - **Продвинутое управление чатами**: Объединение сообщений, редактируемый стиль текста, принудительное копирование, инверсия ответа, отмена/повтор действий (undo/redo), предпросмотр чата со скроллом.
 - **Обход ограничений**: Опция игнорирования ограничений контента, существующих только для Android (обход NSFW-фильтра).
 - **Кастомизация**: Кастомные наборы эмодзи, настраиваемые пути к кэшу, меню в стиле Telegram X и темы Material Design.
@@ -92,6 +92,7 @@ NullcoreGram настроен для безопасной облачной сб�
 
 NullcoreGram построен на базе невероятной работы open-source сообщества. Особая благодарность проектам:
 
+- [AyuGram](https://github.com/AyuGram)
 - [NekoX](https://github.com/NekoX-Dev/NekoX)
 - [Nagram](https://github.com/NextAlone/Nagram)
 - [Nekogram](https://gitlab.com/Nekogram/Nekogram)
