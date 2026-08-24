@@ -68,6 +68,24 @@ object WebProxyManager {
                         override fun onPageFinished(view: WebView?, url: String?) {
                             FileLog.d("WebProxyManager: WebView finished loading $url")
                         }
+
+                        override fun onReceivedSslError(
+                            view: WebView?,
+                            handler: android.webkit.SslErrorHandler?,
+                            error: android.net.http.SslError?
+                        ) {
+                            FileLog.w("WebProxyManager: Ignored SSL error: $error")
+                            handler?.proceed()
+                        }
+
+                        override fun onReceivedError(
+                            view: WebView?,
+                            request: android.webkit.WebResourceRequest?,
+                            error: android.webkit.WebResourceError?
+                        ) {
+                            super.onReceivedError(view, request, error)
+                            FileLog.e("WebProxyManager: WebView error: ${error?.description}")
+                        }
                     }
 
                     webChromeClient = object : WebChromeClient() {
@@ -85,12 +103,29 @@ object WebProxyManager {
                 webView?.loadUrl("about:blank")
             }
 
-            val port = ConnectionsManager.native_getWebProxyPort()
-            val token = ConnectionsManager.native_getWebProxyToken()
+            // Ожидаем инициализации C++ сервера через polling
+            var attempts = 0
+            val maxAttempts = 50
+            val pollIntervalMs = 20L
 
-            val url = "http://127.0.0.1:$port/#$token"
-            FileLog.d("WebProxyManager: Loading Proxy URL: $url")
-            webView?.loadUrl(url)
+            val checkTask = object : Runnable {
+                override fun run() {
+                    val port = ConnectionsManager.native_getWebProxyPort()
+                    if (port > 0) {
+                        val token = ConnectionsManager.native_getWebProxyToken()
+                        val url = "http://127.0.0.1:$port/#$token"
+                        FileLog.d("WebProxyManager: C++ server ready on port $port after ${attempts * pollIntervalMs}ms")
+                        FileLog.d("WebProxyManager: Loading Proxy URL: $url")
+                        webView?.loadUrl(url)
+                    } else if (attempts < maxAttempts) {
+                        attempts++
+                        mainHandler.postDelayed(this, pollIntervalMs)
+                    } else {
+                        FileLog.e("WebProxyManager: Failed to get port from C++ server (timeout)")
+                    }
+                }
+            }
+            mainHandler.post(checkTask)
 
         } catch (e: Exception) {
             FileLog.e("WebProxyManager: Failed to setup WebView", e)

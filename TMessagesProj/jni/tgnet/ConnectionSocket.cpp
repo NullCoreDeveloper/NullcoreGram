@@ -593,7 +593,11 @@ void ConnectionSocket::openConnection(std::string address, uint16_t port, std::s
         if (LOGS_ENABLED) DEBUG_D("connection(%p) connecting via proxy %s:%d secret[%d] ipv6:%d", this, proxyAddress->c_str(), proxyPort, (int) proxySecret->size(), isProxyIpv6);
         if (*proxySecret == "webproxy") {
             isWebProxy = true;
-            WebProxyServer::getInstance().start(*proxyAddress);
+            std::string fullProxyHost = *proxyAddress;
+            if (proxyPort != 443) {
+                fullProxyHost += ":" + std::to_string(proxyPort);
+            }
+            WebProxyServer::getInstance().start(fullProxyHost);
             webProxyStreamId = WebProxyServer::getInstance().registerStream(this);
             return;
         }
