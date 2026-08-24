@@ -327,7 +327,7 @@ void WebProxyServer::registerClientEpoll() {
     }
 }
 
-void WebProxyServer::closeClient() {
+void WebProxyServer::closeClientSocketOnly() {
     if (clientSocket == -1) return;
     ConnectionsManager& cm = ConnectionsManager::getInstance(0);
     ::epoll_ctl(cm.epolFd, EPOLL_CTL_DEL, clientSocket, nullptr);
@@ -335,16 +335,30 @@ void WebProxyServer::closeClient() {
     clientSocket = -1;
     wsHandshakeDone = false;
     recvBuffer.clear();
+}
 
-    // Уведомляем все стримы об отключении через публичный метод.
+void WebProxyServer::closeClient() {
+    if (clientSocket == -1) return;
+
+    // Копируем список стримов перед итерацией, так как onWebProxyDisconnected
+    // вызывает closeSocket -> closeStream -> streams.erase(), что мутирует streams!
+    std::vector<ConnectionSocket*> socketsToDisconnect;
+    socketsToDisconnect.reserve(streams.size());
     for (auto& kv : streams) {
-        kv.second->onWebProxyDisconnected();
+        socketsToDisconnect.push_back(kv.second);
+    }
+
+    closeClientSocketOnly();
+
+    for (ConnectionSocket* socket : socketsToDisconnect) {
+        socket->onWebProxyDisconnected();
     }
 }
 
 void WebProxyServer::readClient() {
     // Читаем данные порциями (EPOLLET требует читать до EAGAIN).
     while (true) {
+        if (clientSocket == -1) break;
         char buf[8192];
         ssize_t n = ::recv(clientSocket, buf, sizeof(buf), 0);
         if (n < 0) {
@@ -364,9 +378,12 @@ void WebProxyServer::readClient() {
             std::string request(buf, static_cast<size_t>(n));
             if (!doHttpHandshake(request)) {
                 closeClient();
+                return;
             }
-            // После отдачи HTML страницы сокет уже закрыт в serveHtmlPage().
-            // После успешного рукопожатия wsHandshakeDone=true — продолжаем.
+            if (clientSocket == -1) {
+                // HTML страница отдана, HTTP сокет закрыт, ожидаем подключения WebSocket.
+                break;
+            }
         } else {
             // WebSocket-фаза: накапливаем в буфер и парсим фреймы.
             recvBuffer.insert(recvBuffer.end(), buf, buf + n);
@@ -374,7 +391,7 @@ void WebProxyServer::readClient() {
     }
 
     // Парсим накопленные WebSocket фреймы.
-    if (wsHandshakeDone) {
+    if (wsHandshakeDone && clientSocket != -1) {
         processWsFrames();
     }
 }
@@ -445,7 +462,8 @@ void WebProxyServer::serveHtmlPage() {
 
     writeClient(reinterpret_cast<const uint8_t*>(response.c_str()), response.length());
     // Сокет закрываем после отправки HTML (Connection: close).
-    closeClient();
+    // Важно: НЕ вызываем closeClient(), иначе оно принудительно разорвёт стримы Telegram!
+    closeClientSocketOnly();
 }
 
 // ─── WebSocket Frame Parser ───────────────────────────────────────────────────
@@ -504,13 +522,24 @@ void WebProxyServer::processWsFrames() {
             // Close frame.
             closeClient();
             return;
+        } else if (opcode == 1) {
+            // Text frame — JSON фрейм управления (auth от WebProxy JS скрипта)
+            if (payloadLen > 0) {
+                std::string textMsg(reinterpret_cast<const char*>(recvBuffer.data() + headerLen), static_cast<size_t>(payloadLen));
+                if (LOGS_ENABLED) DEBUG_D("WebProxyServer: received text msg: %s", textMsg.c_str());
+                if (textMsg.find("\"auth\"") != std::string::npos) {
+                    std::string bridgeUrl = "https://" + proxyHost + "/?bridge=" + token;
+                    std::string bridgeResp = "{\"t\":\"bridge\",\"url\":\"" + bridgeUrl + "\"}";
+                    if (LOGS_ENABLED) DEBUG_D("WebProxyServer: sending bridge resp: %s", bridgeResp.c_str());
+                    sendTextMessage(bridgeResp);
+                }
+            }
         } else if (opcode == 2) {
             // Binary frame — наш внутренний протокол.
             if (payloadLen > 0) {
                 parseFrame(recvBuffer.data() + headerLen, static_cast<size_t>(payloadLen));
             }
         }
-        // opcode == 1 (Text), 9 (Ping), 10 (Pong) — игнорируем.
 
         // Удаляем обработанный фрейм из буфера.
         recvBuffer.erase(recvBuffer.begin(),
@@ -570,4 +599,26 @@ void WebProxyServer::writeClient(const uint8_t* data, size_t len) {
             sent += static_cast<size_t>(n);
         }
     }
+}
+
+void WebProxyServer::sendTextMessage(const std::string& text) {
+    if (clientSocket == -1 || !wsHandshakeDone) return;
+    size_t len = text.length();
+    std::vector<uint8_t> wsFrame;
+    wsFrame.reserve(len + 10);
+    wsFrame.push_back(0x81); // FIN + Text (opcode 1)
+    if (len < 126) {
+        wsFrame.push_back(static_cast<uint8_t>(len));
+    } else if (len <= 65535) {
+        wsFrame.push_back(126);
+        wsFrame.push_back(static_cast<uint8_t>((len >> 8) & 0xFF));
+        wsFrame.push_back(static_cast<uint8_t>(len & 0xFF));
+    } else {
+        wsFrame.push_back(127);
+        for (int i = 7; i >= 0; i--) {
+            wsFrame.push_back(static_cast<uint8_t>((len >> (i * 8)) & 0xFF));
+        }
+    }
+    wsFrame.insert(wsFrame.end(), text.begin(), text.end());
+    writeClient(wsFrame.data(), wsFrame.size());
 }

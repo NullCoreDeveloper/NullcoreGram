@@ -64,7 +64,9 @@ private:
     void acceptClient();
     void readClient();
     void closeClient();
+    void closeClientSocketOnly();
     void writeClient(const uint8_t* data, size_t len);
+    void sendTextMessage(const std::string& text);
     void registerClientEpoll();
 
     // HTTP/WebSocket handshake.

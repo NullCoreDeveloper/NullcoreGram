@@ -62,6 +62,7 @@ object WebProxyManager {
                     settings.domStorageEnabled = true
                     settings.cacheMode = WebSettings.LOAD_NO_CACHE
                     settings.mediaPlaybackRequiresUserGesture = false
+                    settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
 
                     webViewClient = object : WebViewClient() {
                         override fun onPageFinished(view: WebView?, url: String?) {
