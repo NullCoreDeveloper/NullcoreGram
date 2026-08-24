@@ -1098,7 +1098,14 @@ public class ConnectionsManager extends BaseController {
         for (int a : SharedConfig.activeAccounts) {
             if (enabled && !TextUtils.isEmpty(address)) {
                 if ("webproxy".equals(secret)) {
-                    native_setProxySettings(a, "127.0.0.1", WebProxyManager.INSTANCE.getPort(), "", "", "");
+                    String realSecret = "";
+                    if (address.contains("/")) {
+                        String[] parts = address.split("/");
+                        if (parts.length > 1) {
+                            realSecret = parts[1];
+                        }
+                    }
+                    native_setProxySettings(a, "127.0.0.1", WebProxyManager.INSTANCE.getPort(), "", "", realSecret);
                 } else {
                     native_setProxySettings(a, address, port, username, password, secret);
                 }
@@ -1113,7 +1120,14 @@ public class ConnectionsManager extends BaseController {
         if (SharedConfig.loginingAccount != -1) {
             if (enabled && !TextUtils.isEmpty(address)) {
                 if ("webproxy".equals(secret)) {
-                    native_setProxySettings(SharedConfig.loginingAccount, "127.0.0.1", WebProxyManager.INSTANCE.getPort(), "", "", "");
+                    String realSecret = "";
+                    if (address.contains("/")) {
+                        String[] parts = address.split("/");
+                        if (parts.length > 1) {
+                            realSecret = parts[1];
+                        }
+                    }
+                    native_setProxySettings(SharedConfig.loginingAccount, "127.0.0.1", WebProxyManager.INSTANCE.getPort(), "", "", realSecret);
                 } else {
                     native_setProxySettings(SharedConfig.loginingAccount, address, port, username, password, secret);
                 }
