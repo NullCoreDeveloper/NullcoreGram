@@ -274,7 +274,7 @@ class SessionHandler(
                 }
                 
                 val firstChunk = buf.copyOfRange(0, read)
-                val openFrame = createFrame(1, 1, firstChunk)
+                val openFrame = createFrame(1, 0, firstChunk)
                 Log.d(TAG, "Read first chunk of size ${firstChunk.size}, wrapped in OPEN frame")
                 println("WEBPROXY: Read first chunk of size ${firstChunk.size}, wrapped in OPEN frame")
 
@@ -365,7 +365,7 @@ class SessionHandler(
     }
 
     private fun sendData(data: ByteArray) {
-        val dataFrame = createFrame(2, 1, data)
+        val dataFrame = createFrame(2, 0, data)
         if (carrierMode == "websocket") {
             ws?.send(dataFrame.toByteString())
         } else {
