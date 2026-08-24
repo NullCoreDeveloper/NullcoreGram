@@ -120,25 +120,11 @@ object WebProxyManager {
                 val hmacResult = mac.doFinal(context)
                 val bridgeCapability = Base64.encodeToString(hmacResult, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)
                 
-                // 2. Fetch bridge page and extract bootstrap token
-                val bridgeUrl = "https://$hostname/?bridge=$bridgeCapability"
-                val bridgeRequest = Request.Builder().url(bridgeUrl).build()
-                val bridgeResponse = client.newCall(bridgeRequest).execute()
-                
-                if (bridgeResponse.code != 200) throw Exception("Bridge returned HTTP ${bridgeResponse.code}")
-                
-                val bridgeHtml = bridgeResponse.body?.string() ?: ""
-                val bootstrapPattern = Pattern.compile("bootstrap=\"([A-Za-z0-9_-]{43})\"")
-                val matcher = bootstrapPattern.matcher(bridgeHtml)
-                val bootstrapToken = if (matcher.find()) matcher.group(1) else null
-                
-                if (bootstrapToken == null) throw Exception("Bootstrap token not found in bridge page")
-
                 // 3. Accept local TGNet connections and spawn session handlers
                 while (isRunning.get() && !serverSocket!!.isClosed) {
                     val socket = serverSocket!!.accept()
                     val sessionId = nextSessionId.getAndIncrement()
-                    val handler = SessionHandler(sessionId, socket, bootstrapToken, hostname)
+                    val handler = SessionHandler(sessionId, socket, hostname, bridgeCapability)
                     activeSessions[sessionId] = handler
                     handler.start()
                 }
@@ -192,8 +178,8 @@ object WebProxyManager {
 class SessionHandler(
     private val sessionId: Int,
     private val socket: Socket,
-    private val bootstrapToken: String,
-    private val activeHostname: String
+    private val activeHostname: String,
+    private val bridgeCapability: String
 ) {
     private val TAG = "WEBPROXY_SESSION_$sessionId"
     private var isRunning = AtomicBoolean(true)
@@ -259,6 +245,16 @@ class SessionHandler(
     fun start() {
         thread(start = true, name = "WebProxySetup_$sessionId") {
             try {
+                val bridgeUrl = "https://$activeHostname/?bridge=$bridgeCapability"
+                val bridgeRequest = Request.Builder().url(bridgeUrl).build()
+                val bridgeResponse = WebProxyManager.client.newCall(bridgeRequest).execute()
+                if (bridgeResponse.code != 200) throw Exception("Bridge returned HTTP ${bridgeResponse.code}")
+                val bridgeHtml = bridgeResponse.body?.string() ?: ""
+                val bootstrapPattern = Pattern.compile("bootstrap=\"([A-Za-z0-9_-]{43})\"")
+                val matcher = bootstrapPattern.matcher(bridgeHtml)
+                val bootstrapToken = if (matcher.find()) matcher.group(1) else null
+                if (bootstrapToken == null) throw Exception("Bootstrap token not found in bridge page")
+
                 val helloFrame = byteArrayOf(0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01)
                 
                 val sessionRequest = Request.Builder()
@@ -288,12 +284,13 @@ class SessionHandler(
                 val combined = openFrame + dataFrame
                 sendDataRaw(combined)
 
-                if (carrierMode == "websocket") {
+                if (carrierMode == "websocket" || carrierMode == "websocket-lanes") {
                     val wsUrl = "wss://$activeHostname/api/v1/ws"
+                    val protocol = if (carrierMode == "websocket-lanes") "tproxy-lane-v1.$sessionToken.1" else "tproxy-v1.$sessionToken"
                     val wsRequest = Request.Builder()
                         .url(wsUrl)
                         .header("Origin", "https://$activeHostname")
-                        .header("Sec-WebSocket-Protocol", "tproxy-v1.$sessionToken")
+                        .header("Sec-WebSocket-Protocol", protocol)
                         .build()
                     
                     val latch = java.util.concurrent.CountDownLatch(1)
@@ -344,16 +341,21 @@ class SessionHandler(
     }
 
     private fun sendDataRaw(frameData: ByteArray) {
-        if (carrierMode == "websocket") {
+        if (carrierMode == "websocket" || carrierMode == "websocket-lanes") {
             ws?.send(frameData.toByteString())
         } else {
             val seq = upSequence.incrementAndGet()
-            val upRequest = Request.Builder()
+            val upRequestBuilder = Request.Builder()
                 .url("https://$activeHostname/api/v1/up")
                 .header("Authorization", "Bearer $sessionToken")
                 .header("X-Up-Seq", seq.toString())
                 .post(frameData.toRequestBody("application/octet-stream".toMediaType()))
-                .build()
+                
+            if (carrierMode == "https-lanes") {
+                upRequestBuilder.header("X-Lane-ID", "1")
+            }
+
+            val upRequest = upRequestBuilder.build()
 
             WebProxyManager.client.newCall(upRequest).enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) { Log.e(TAG, "Uplink chunk failed", e) }
