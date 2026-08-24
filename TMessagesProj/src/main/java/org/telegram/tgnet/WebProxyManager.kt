@@ -7,6 +7,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import okio.ByteString.Companion.toByteString
 import java.io.ByteArrayOutputStream
+import java.io.IOException
 import java.net.ServerSocket
 import java.net.Socket
 import java.util.concurrent.ConcurrentHashMap
@@ -197,7 +198,7 @@ class SessionHandler(
     private var isRunning = AtomicBoolean(true)
     private var sessionToken = ""
     private var downCursor = "0"
-    private var upSequence = 1
+    private var upSequence = AtomicInteger(0)
     
     private val upQueue = java.util.ArrayDeque<ByteArray>()
     private val upLock = Object()
