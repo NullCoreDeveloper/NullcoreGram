@@ -2676,6 +2676,7 @@
     <string name="DeleteProxyMultiConfirm">Are you sure you want to delete these proxies?</string>
     <string name="UseProxyTitle">Proxy Server</string>
     <string name="UseProxySettings">Use Proxy</string>
+    <string name="DisableProxyOnVpn">Disable proxy on VPN</string>
     <string name="UseProxyAddress">Server</string>
     <string name="UseProxyPassword">Password</string>
     <string name="UseProxyPort">Port</string>

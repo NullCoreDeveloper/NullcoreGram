@@ -733,6 +733,7 @@ public class ConnectionsManager extends BaseController {
         }
         native_setIpStrategy(currentAccount, selectedStrategy);
         native_setNetworkAvailable(currentAccount, ApplicationLoader.isNetworkOnline(), ApplicationLoader.getCurrentNetworkType(), ApplicationLoader.isConnectionSlow());
+        SharedConfig.checkVpnProxyBypass();
     }
 
     public void setPushConnectionEnabled(boolean value) {
@@ -775,7 +776,19 @@ public class ConnectionsManager extends BaseController {
 
         Utilities.stageQueue.postRunnable(() -> {
             if (SharedConfig.isProxyEnabled()) {
-                native_setProxySettings(currentAccount, SharedConfig.currentProxy.address, SharedConfig.currentProxy.port, SharedConfig.currentProxy.username, SharedConfig.currentProxy.password, SharedConfig.currentProxy.secret);
+                if ("webproxy".equals(SharedConfig.currentProxy.secret)) {
+                    WebProxyManager.INSTANCE.start(SharedConfig.currentProxy.address);
+                    String realSecret = "";
+                    if (SharedConfig.currentProxy.address.contains("/")) {
+                        String[] parts = SharedConfig.currentProxy.address.split("/");
+                        if (parts.length > 1) {
+                            realSecret = parts[1];
+                        }
+                    }
+                    native_setProxySettings(currentAccount, "127.0.0.1", WebProxyManager.INSTANCE.getPort(), "", "", realSecret);
+                } else {
+                    native_setProxySettings(currentAccount, SharedConfig.currentProxy.address, SharedConfig.currentProxy.port, SharedConfig.currentProxy.username, SharedConfig.currentProxy.password, SharedConfig.currentProxy.secret);
+                }
             }
             checkConnection();
 

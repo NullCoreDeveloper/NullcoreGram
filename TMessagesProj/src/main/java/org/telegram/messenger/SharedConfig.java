@@ -474,6 +474,39 @@ public class SharedConfig {
     }
 
     private static boolean proxyListLoaded;
+    public static boolean disableProxyOnVpn;
+
+    private static boolean lastVpnState = false;
+
+    public static void checkVpnProxyBypass() {
+        if (!disableProxyOnVpn) return;
+        boolean currentVpnState = isVpnActive();
+        if (currentVpnState != lastVpnState) {
+            lastVpnState = currentVpnState;
+            setProxyEnable(MessagesController.getGlobalMainSettings().getBoolean("proxy_enabled", false));
+        }
+    }
+
+    public static boolean isVpnActive() {
+        android.net.ConnectivityManager cm = (android.net.ConnectivityManager) ApplicationLoader.applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            android.net.Network activeNetwork = cm.getActiveNetwork();
+            if (activeNetwork != null) {
+                android.net.NetworkCapabilities caps = cm.getNetworkCapabilities(activeNetwork);
+                return caps != null && caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_VPN);
+            }
+        } else {
+            android.net.NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+            return activeNetwork != null && activeNetwork.getType() == android.net.ConnectivityManager.TYPE_VPN;
+        }
+        return false;
+    }
+
+    public static void setDisableProxyOnVpn(boolean disable) {
+        disableProxyOnVpn = disable;
+        ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE).edit().putBoolean("disableProxyOnVpn", disableProxyOnVpn).apply();
+        setProxyEnable(MessagesController.getGlobalMainSettings().getBoolean("proxy_enabled", false));
+    }
     public static ProxyInfo currentProxy;
 
     public static void saveConfig() {
@@ -1525,8 +1558,9 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         preferences.edit().putBoolean("proxy_enabled", enable).apply();
 
+        boolean isVpnBypass = disableProxyOnVpn && isVpnActive();
+        boolean finalEnable = enable && !isVpnBypass;
         ProxyInfo finalInfo = currentProxy;
-        boolean finalEnable = enable;
         UIUtil.runOnIoDispatcher(() -> {
             if (finalEnable) {
                 ConnectionsManager.setProxySettings(true, finalInfo.address, finalInfo.port, finalInfo.username, finalInfo.password, finalInfo.secret);
@@ -1559,6 +1593,7 @@ public class SharedConfig {
         String proxyPassword = preferences.getString("proxy_pass", "");
         String proxySecret = preferences.getString("proxy_secret", "");
         int proxyPort = preferences.getInt("proxy_port", 1080);
+        disableProxyOnVpn = preferences.getBoolean("disableProxyOnVpn", false);
 
         proxyListLoaded = true;
         proxyList.clear();
