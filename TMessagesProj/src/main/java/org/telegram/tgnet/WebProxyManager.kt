@@ -8,6 +8,7 @@ import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import okio.ByteString
 import okio.ByteString.Companion.toByteString
+import java.io.DataInputStream
 import java.net.ServerSocket
 import java.net.Socket
 import java.util.concurrent.CountDownLatch
@@ -30,6 +31,7 @@ object WebProxyManager {
         .writeTimeout(15, TimeUnit.SECONDS)
         .build()
 
+    @Synchronized
     fun start(proxyHost: String) {
         if (isRunning.get() && currentHost == proxyHost) return
         stop()
@@ -57,6 +59,7 @@ object WebProxyManager {
         }
     }
 
+    @Synchronized
     fun stop() {
         if (!isRunning.compareAndSet(true, false)) return
         Log.d(TAG, "WebProxy ServerSocket stopping...")
@@ -68,34 +71,37 @@ object WebProxyManager {
         proxyThread = null
     }
 
+    @Synchronized
     fun getPort(): Int = localPort
 
     private fun handleClient(socket: Socket, proxyHost: String) {
+        var ws: WebSocket? = null
         try {
             val input = socket.getInputStream()
             val output = socket.getOutputStream()
+            val dataInput = DataInputStream(input)
 
             socket.soTimeout = 10000
             val buf = ByteArray(256)
             
             // SOCKS5 Handshake Phase 1
-            if (input.read(buf, 0, 2) < 2) return
+            dataInput.readFully(buf, 0, 2)
             if (buf[0] != 0x05.toByte()) return
             val methodsCount = buf[1].toInt()
-            if (input.read(buf, 0, methodsCount) < methodsCount) return
+            dataInput.readFully(buf, 0, methodsCount)
             output.write(byteArrayOf(0x05, 0x00))
             output.flush()
 
             // SOCKS5 Handshake Phase 2
-            if (input.read(buf, 0, 4) < 4) return
+            dataInput.readFully(buf, 0, 4)
             val atyp = buf[3].toInt()
             when (atyp) {
-                1 -> input.read(buf, 0, 6) 
+                1 -> dataInput.readFully(buf, 0, 6) 
                 3 -> {
-                    val domainLen = input.read()
-                    input.read(buf, 0, domainLen + 2)
+                    val domainLen = dataInput.readUnsignedByte()
+                    dataInput.readFully(buf, 0, domainLen + 2)
                 }
-                4 -> input.read(buf, 0, 18) 
+                4 -> dataInput.readFully(buf, 0, 18) 
                 else -> return
             }
             output.write(byteArrayOf(0x05, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00))
@@ -103,13 +109,17 @@ object WebProxyManager {
 
             socket.soTimeout = 0
 
-            var wsUrl = proxyHost
-            if (!wsUrl.startsWith("ws://") && !wsUrl.startsWith("wss://")) {
-                wsUrl = "wss://$wsUrl"
-            }
+            // Safely parse proxyHost which could be "domain.com/secret" or "wss://domain.com/secret"
+            var cleanHost = proxyHost
+            if (cleanHost.startsWith("wss://")) cleanHost = cleanHost.substring(6)
+            if (cleanHost.startsWith("ws://")) cleanHost = cleanHost.substring(5)
 
-            val parts = proxyHost.split("/")
+            val parts = cleanHost.split("/")
             val secret = if (parts.size > 1) parts[1] else ""
+            
+            val isUnsecure = proxyHost.startsWith("ws://")
+            val scheme = if (isUnsecure) "ws://" else "wss://"
+            val wsUrl = "$scheme$cleanHost"
 
             val request = Request.Builder()
                 .url(wsUrl)
@@ -120,7 +130,6 @@ object WebProxyManager {
                 }
                 .build()
 
-            var ws: WebSocket? = null
             val latch = CountDownLatch(1)
             var connected = false
 
@@ -166,12 +175,13 @@ object WebProxyManager {
             }
 
             ws?.close(1000, "Client disconnect")
-            socket.close()
         } catch (e: Exception) {
             if (isRunning.get()) {
                 Log.e(TAG, "Error handling client", e)
             }
-            try { socket.close() } catch (ignore: Exception) {}
+        } finally {
+            try { ws?.cancel() } catch (_: Exception) {}
+            try { socket.close() } catch (_: Exception) {}
         }
     }
 }
