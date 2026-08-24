@@ -3306,6 +3306,9 @@ std::string base64UrlDecode(std::string base64) {
 }
 
 inline std::string decodeSecret(std::string secret) {
+    if (secret == "webproxy") {
+        return secret;
+    }
     bool allHex = true;
     for (char i : secret) {
         if (!((i >= '0' && i <= '9') || (i >= 'a' && i <= 'f') || (i >= 'A' && i <= 'F'))) {
