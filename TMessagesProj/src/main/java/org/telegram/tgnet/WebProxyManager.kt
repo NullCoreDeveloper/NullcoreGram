@@ -89,6 +89,7 @@ object WebProxyManager {
         localPort = serverSocket!!.localPort
 
         proxyThread = thread(start = true, name = "WebProxyThread") {
+            val currentThread = Thread.currentThread()
             try {
                 Log.d(TAG, "WebProxy ServerSocket started on port $localPort for address $proxyAddress")
                 
@@ -142,10 +143,10 @@ object WebProxyManager {
                     handler.start()
                 }
             } catch (e: Exception) {
-                if (isRunning.get()) {
+                if (isRunning.get() && Thread.currentThread() == proxyThread) {
                     Log.e(TAG, "WebProxy error", e)
                     try { Thread.sleep(3000) } catch (_: Exception) {}
-                    if (isRunning.get()) {
+                    if (isRunning.get() && Thread.currentThread() == proxyThread) {
                         Log.d(TAG, "Restarting WebProxy...")
                         start(proxyAddress) 
                     }
@@ -198,24 +199,18 @@ class SessionHandler(
     private var isRunning = AtomicBoolean(true)
     private var sessionToken = ""
     private var downCursor = "0"
-    private var upSequence = AtomicInteger(0)
-    
-    private val upQueue = java.util.ArrayDeque<ByteArray>()
-    private val upLock = Object()
-
-    private var upThread: Thread? = null
-    private var pollThread: Thread? = null
-    private var readThread: Thread? = null
-    private var ws: WebSocket? = null
     private var carrierMode = "https"
+    private var upSequence = AtomicInteger(0)
+    private var ws: WebSocket? = null
+    private var readThread: Thread? = null
 
-    private fun createFrame(type: Int, id: Int, data: ByteArray): ByteArray {
+    private fun createFrame(type: Int, streamId: Int, data: ByteArray): ByteArray {
         val size = data.size
         val frame = ByteArray(8 + size)
         frame[0] = type.toByte()
-        frame[1] = (id ushr 16).toByte()
-        frame[2] = (id ushr 8).toByte()
-        frame[3] = id.toByte()
+        frame[1] = (streamId ushr 16).toByte()
+        frame[2] = (streamId ushr 8).toByte()
+        frame[3] = streamId.toByte()
         frame[4] = (size ushr 24).toByte()
         frame[5] = (size ushr 16).toByte()
         frame[6] = (size ushr 8).toByte()
@@ -397,7 +392,7 @@ class SessionHandler(
                 .url("https://$activeHostname/api/v1/down")
                 .header("Authorization", "Bearer $sessionToken")
                 .header("X-Down-Cursor", downCursor)
-                .post(ByteArray(0).toRequestBody("application/octet-stream".toMediaType()))
+                .post(ByteArray(0).toRequestBody(null))
             
             if (carrierMode == "https-lanes") {
                 requestBuilder.header("X-Lane-ID", "1")
