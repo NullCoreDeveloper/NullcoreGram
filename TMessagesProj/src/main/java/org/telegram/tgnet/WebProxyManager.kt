@@ -128,8 +128,10 @@ object WebProxyManager {
             }
 
             val endpoints = listOf(
-                "https://cloudflare-dns.com/dns-query?name=$hostname&type=A",
-                "https://dns.google/resolve?name=$hostname&type=A"
+                "https://8.8.8.8/resolve?name=$hostname&type=A",
+                "https://1.1.1.1/dns-query?name=$hostname&type=A",
+                "https://dns.google/resolve?name=$hostname&type=A",
+                "https://cloudflare-dns.com/dns-query?name=$hostname&type=A"
             )
 
             for (endpoint in endpoints) {
@@ -222,7 +224,7 @@ object WebProxyManager {
                 if (cleanHost.startsWith("http://")) cleanHost = cleanHost.substring(7)
 
                 val parts = cleanHost.split("/")
-                val hostname = parts[0]
+                val hostname = parts[0].substringBefore(':')
                 val secret = if (parts.size > 1) parts[1] else ""
 
                 if (hostname.isEmpty()) {
@@ -252,10 +254,26 @@ object WebProxyManager {
                     Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP
                 )
 
-                val response = CronetHttpClient.execute(
-                    url = "https://$hostname/?bridge=$bridgeCapability",
-                    timeoutSeconds = 8
-                )
+                var responseCode = -1
+                try {
+                    val response = CronetHttpClient.execute(
+                        url = "https://$hostname/?bridge=$bridgeCapability",
+                        timeoutSeconds = 8
+                    )
+                    responseCode = response.code
+                } catch (cronetErr: Throwable) {
+                    Log.w(TAG, "Cronet probe failed for $hostname, trying OkHttp fallback...", cronetErr)
+                    try {
+                        val req = Request.Builder()
+                            .url("https://$hostname/?bridge=$bridgeCapability")
+                            .build()
+                        val resp = setupClient.newCall(req).execute()
+                        responseCode = resp.code
+                        resp.close()
+                    } catch (fallbackErr: Throwable) {
+                        Log.w(TAG, "Fallback probe also failed for $hostname", fallbackErr)
+                    }
+                }
 
                 val elapsedMs = maxOf(
                     1L,
@@ -265,9 +283,10 @@ object WebProxyManager {
                 )
 
                 requestTimeDelegate?.run(
-                    if (response.code == 200) elapsedMs else -1L
+                    if (responseCode == 200) elapsedMs else -1L
                 )
-            } catch (_: Throwable) {
+            } catch (e: Throwable) {
+                Log.e(TAG, "checkProxyAvailability error for $proxyAddress", e)
                 requestTimeDelegate?.run(-1L)
             }
         }
@@ -298,7 +317,7 @@ object WebProxyManager {
                 if (cleanHost.startsWith("http://")) cleanHost = cleanHost.substring(7)
                 
                 val parts = cleanHost.split("/")
-                val hostname = parts[0]
+                val hostname = parts[0].substringBefore(':')
                 val secret = if (parts.size > 1) parts[1] else ""
 
                 // LAB only: strict-ECH negative test.

@@ -217,6 +217,11 @@ object CronetHttpClient {
                     UploadDataProviders.create(body),
                     executor
                 )
+            } else if (method.equals("POST", ignoreCase = true) || method.equals("PUT", ignoreCase = true)) {
+                builder.setUploadDataProvider(
+                    UploadDataProviders.create(ByteArray(0)),
+                    executor
+                )
             }
 
             val request = builder.build()

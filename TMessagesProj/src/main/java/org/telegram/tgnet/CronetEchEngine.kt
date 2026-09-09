@@ -1,6 +1,7 @@
 package org.telegram.tgnet
 
 import android.content.Context
+import android.util.Log
 import org.chromium.net.CronetEngine
 import org.chromium.net.ExperimentalCronetEngine
 import org.telegram.messenger.ApplicationLoader
@@ -80,8 +81,9 @@ object CronetEchEngine {
             cacheField.isAccessible = true
             cacheField.set(null, replacementResolvedFlags)
         } catch (e: Throwable) {
-            throw IllegalStateException(
-                "Unable to install CronetEnableDnsPlatform override",
+            Log.w(
+                "CronetEchEngine",
+                "Unable to install CronetEnableDnsPlatform override; continuing without it",
                 e
             )
         }
