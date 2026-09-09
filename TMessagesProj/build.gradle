@@ -478,4 +478,17 @@ dependencies {
 
 apply plugin: "com.google.gms.google-services"
 
+afterEvaluate {
+    if (tasks.findByName("stripReleaseDebugSymbols") == null) {
+        tasks.register("stripReleaseDebugSymbols") {
+            dependsOn("stripPublicReleaseDebugSymbols")
+        }
+    }
+    if (tasks.findByName("assembleRelease") == null) {
+        tasks.register("assembleRelease") {
+            dependsOn("assemblePublicRelease")
+        }
+    }
+}
+
 

@@ -6,7 +6,7 @@ OUT=TMessagesProj/build/intermediates/merged_native_libs/release/mergeReleaseNat
 DIR=TMessagesProj/src/main/libs
 
 export COMPILE_NATIVE=1
-./gradlew TMessagesProj:stripReleaseDebugSymbols || exit 1
+./gradlew TMessagesProj:stripPublicReleaseDebugSymbols || ./gradlew TMessagesProj:stripReleaseDebugSymbols || exit 1
 
 function install() {
   local ABI="$1"

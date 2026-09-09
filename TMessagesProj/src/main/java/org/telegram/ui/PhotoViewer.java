@@ -18461,6 +18461,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
     }
 
     public void closePhoto(boolean animated, boolean fromEditMode) {
+        tw.nekomimi.nekogram.helpers.VideoGesturesHelper.onReset();
         if (stickerMakerView != null) {
             stickerMakerView.isThanosInProgress = false;
             if (cutOutBtn.isCancelState()) {
@@ -19319,6 +19320,9 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
     Runnable longPressRunnable = this::onLongPress;
 
     private boolean onTouchEvent(MotionEvent ev) {
+        if (tw.nekomimi.nekogram.helpers.VideoGesturesHelper.onTouchEvent(this, ev, isCurrentVideo)) {
+            return true;
+        }
         lastX = ev.getX();
         if (currentEditMode == EDIT_MODE_PAINT && animationStartTime != 0 && (ev.getActionMasked() == MotionEvent.ACTION_DOWN || ev.getActionMasked() == MotionEvent.ACTION_POINTER_DOWN)) {
             if (ev.getPointerCount() >= 2) {

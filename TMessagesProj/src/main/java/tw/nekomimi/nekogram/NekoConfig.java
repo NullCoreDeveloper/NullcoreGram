@@ -134,6 +134,10 @@ public class NekoConfig {
 
     public static ConfigItem tabsTitleType = addConfig("TabTitleType", configTypeInt, NekoXConfig.TITLE_TYPE_TEXT);
     public static ConfigItem confirmAVMessage = addConfig("ConfirmAVMessage", configTypeBool, false);
+    public static ConfigItem confirmSendSticker = addConfig("ConfirmSendSticker", configTypeBool, false);
+    public static ConfigItem confirmSendMedia = addConfig("ConfirmSendMedia", configTypeBool, false);
+    public static ConfigItem confirmSendGif = addConfig("ConfirmSendGif", configTypeBool, false);
+    public static ConfigItem videoPlayerGestures = addConfig("VideoPlayerGestures", configTypeBool, true);
     public static ConfigItem askBeforeCall = addConfig("AskBeforeCalling", configTypeBool, false);
     public static ConfigItem disableNumberRounding = addConfig("DisableNumberRounding", configTypeBool, false);
 

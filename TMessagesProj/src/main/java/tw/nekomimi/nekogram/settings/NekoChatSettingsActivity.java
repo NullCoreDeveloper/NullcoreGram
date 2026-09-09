@@ -251,6 +251,9 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
     private final AbstractConfigCell askBeforeCallRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.askBeforeCall));
     private final AbstractConfigCell skipOpenLinkConfirmRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.skipOpenLinkConfirm));
     private final AbstractConfigCell confirmAVRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.confirmAVMessage));
+    private final AbstractConfigCell confirmSendStickerRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.confirmSendSticker));
+    private final AbstractConfigCell confirmSendMediaRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.confirmSendMedia));
+    private final AbstractConfigCell confirmSendGifRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.confirmSendGif));
     private final AbstractConfigCell repeatConfirmRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.repeatConfirm));
     private final AbstractConfigCell dividerConfirms = cellGroup.appendCell(new ConfigCellDivider());
 

@@ -7736,14 +7736,19 @@ public class ChatActivity extends BaseFragment implements
                 Object parent = mentionContainer.getAdapter().getItemParent(position);
                 String query = MessageObject.findAnimatedEmojiEmoticon(document);
                 AlertsCreator.ensurePaidMessageConfirmation(currentAccount, getDialogId(), 1, price -> {
-                    if (chatMode == MODE_SCHEDULED) {
-                        AlertsCreator.createScheduleDatePickerDialog(getParentActivity(), dialog_id, (notify, scheduleDate, scheduleRepeatPeriod) -> SendMessagesHelper.getInstance(currentAccount).sendSticker(document, query, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, null, notify, scheduleDate, 0, false, parent, getMessageChatSendParams(), 0, getSendMonoForumPeerId(), getSendMessageSuggestionParams()), themeDelegate);
-                    } else {
-                        getSendMessagesHelper().sendSticker(document, query, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, sendAnimationData, true, 0, 0, false, parent, getMessageChatSendParams(), price, getSendMonoForumPeerId(), getSendMessageSuggestionParams());
+                    Runnable sendStickerRunnable = () -> {
+                        if (chatMode == MODE_SCHEDULED) {
+                            AlertsCreator.createScheduleDatePickerDialog(getParentActivity(), dialog_id, (notify, scheduleDate, scheduleRepeatPeriod) -> SendMessagesHelper.getInstance(currentAccount).sendSticker(document, query, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, null, notify, scheduleDate, 0, false, parent, getMessageChatSendParams(), 0, getSendMonoForumPeerId(), getSendMessageSuggestionParams()), themeDelegate);
+                        } else {
+                            getSendMessagesHelper().sendSticker(document, query, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, sendAnimationData, true, 0, 0, false, parent, getMessageChatSendParams(), price, getSendMonoForumPeerId(), getSendMessageSuggestionParams());
+                        }
+                        hideFieldPanel(false);
+                        chatActivityEnterView.addStickerToRecent(document);
+                        chatActivityEnterView.setFieldText("");
+                    };
+                    if (!tw.nekomimi.nekogram.helpers.MediaConfirmHelper.checkConfirmSticker(ChatActivity.this, document, sendStickerRunnable)) {
+                        sendStickerRunnable.run();
                     }
-                    hideFieldPanel(false);
-                    chatActivityEnterView.addStickerToRecent(document);
-                    chatActivityEnterView.setFieldText("");
                 });
             } else if (object instanceof TLRPC.Chat) {
                 TLRPC.Chat chat = (TLRPC.Chat) object;
@@ -14704,6 +14709,13 @@ public class ChatActivity extends BaseFragment implements
 
     @Override
     public void didSelectPhotos(ArrayList<SendMessagesHelper.SendingMediaInfo> photos, boolean notify, int scheduleDate, int scheduleRepeatPeriod, long payStars) {
+        if (tw.nekomimi.nekogram.helpers.MediaConfirmHelper.checkConfirmPhotos(this, photos, () -> didSelectPhotosInternal(photos, notify, scheduleDate, scheduleRepeatPeriod, payStars))) {
+            return;
+        }
+        didSelectPhotosInternal(photos, notify, scheduleDate, scheduleRepeatPeriod, payStars);
+    }
+
+    private void didSelectPhotosInternal(ArrayList<SendMessagesHelper.SendingMediaInfo> photos, boolean notify, int scheduleDate, int scheduleRepeatPeriod, long payStars) {
         fillEditingMediaWithCaption(photos.get(0).caption, photos.get(0).entities);
         SendMessagesHelper.prepareSendingMedia(getAccountInstance(), photos, dialog_id, replyingMessageObject, getThreadMessage(), null, replyingQuote, true, false, editingMessageObject, notify, scheduleDate, scheduleRepeatPeriod, chatMode, photos.get(0).updateStickersOrder, null, getMessageChatSendParams(), 0, false, payStars, getSendMonoForumPeerId(), getSendMessageSuggestionParams());
         afterMessageSend();

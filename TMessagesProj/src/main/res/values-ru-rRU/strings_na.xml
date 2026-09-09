@@ -357,4 +357,18 @@
     <string name="LiquidGlassAngle">Угол жидкого стекла</string>
     <string name="LiquidGlassIntensity">Интенсивность Жидкого Стекла</string>
     <string name="DisableGooeyAvatarAnimation">Отключить анимацию аватара \"Товары\"</string>
+    <string name="ConfirmSendSticker">Подтверждать отправку стикеров</string>
+    <string name="ConfirmSendMedia">Подтверждать отправку фото и видео</string>
+    <string name="ConfirmSendGif">Подтверждать отправку GIF</string>
+    <string name="ConfirmSendStickerTitle">Отправить стикер</string>
+    <string name="ConfirmSendStickerMessage">Вы хотите отправить этот стикер?</string>
+    <string name="ConfirmSendMediaTitle">Отправить медиа</string>
+    <string name="ConfirmSendPhotoTitle">Отправить фото</string>
+    <string name="ConfirmSendVideoTitle">Отправить видео</string>
+    <string name="ConfirmSendMediaTitleMultiple">Отправить %d медиафайлов</string>
+    <string name="ConfirmSendMediaMessage">Вы хотите отправить выбранные медиафайлы?</string>
+    <string name="ConfirmSendGifTitle">Отправить GIF</string>
+    <string name="ConfirmSendGifMessage">Вы хотите отправить эту GIF-анимацию?</string>
+    <string name="VideoPlayerGestures">Жесты в видеоплеере</string>
+    <string name="VideoPlayerGesturesNotice">Свайп слева меняет яркость, справа — громкость, по горизонтали — перемотка</string>
 </resources>
