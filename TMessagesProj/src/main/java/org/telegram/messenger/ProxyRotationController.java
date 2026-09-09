@@ -110,7 +110,7 @@ public class ProxyRotationController implements NotificationCenter.NotificationC
         } else if (id == NotificationCenter.proxySettingsChanged) {
             AndroidUtilities.cancelRunOnUIThread(checkProxyAndSwitchRunnable);
         } else if (id == NotificationCenter.didUpdateConnectionState && account == UserConfig.selectedAccount) {
-            if (!SharedConfig.isProxyEnabled() && !SharedConfig.proxyRotationEnabled || SharedConfig.proxyList.size() <= 1) {
+            if (!SharedConfig.isProxyEnabled() || !SharedConfig.proxyRotationEnabled || SharedConfig.proxyList.size() <= 1) {
                 return;
             }
 

@@ -278,21 +278,54 @@ int readCallback(void *opaque, uint8_t *buf, int buf_size) {
 
 int64_t seekCallback(void *opaque, int64_t offset, int whence) {
     VideoInfo *info = (VideoInfo *) opaque;
-    if (!info->stopped) {
-        if (info->fd < 0) {
-            requestFd(info);
-        }
-        if (info->fd >= 0) {
-            if (whence & FFMPEG_AVSEEK_SIZE) {
-                return info->file_size;
-            } else {
-                info->last_seek_p = offset;
-                lseek(info->fd, off_t(offset), SEEK_SET);
-                return offset;
-            }
-        }
+
+    if (info->stopped) {
+        return -1;
     }
-    return 0;
+
+    if (whence & FFMPEG_AVSEEK_SIZE) {
+        return info->file_size;
+    }
+
+    whence &= ~AVSEEK_FORCE;
+
+    int64_t target;
+    switch (whence) {
+        case SEEK_SET:
+            target = offset;
+            break;
+
+        case SEEK_CUR:
+            target = info->last_seek_p + offset;
+            break;
+
+        case SEEK_END:
+            target = info->file_size + offset;
+            break;
+
+        default:
+            return -1;
+    }
+
+    if (target < 0) {
+        return -1;
+    }
+
+    if (info->fd < 0) {
+        requestFd(info);
+    }
+
+    if (info->fd < 0) {
+        return -1;
+    }
+
+    off_t result = lseek(info->fd, (off_t) target, SEEK_SET);
+    if (result < 0) {
+        return -1;
+    }
+
+    info->last_seek_p = (int64_t) result;
+    return info->last_seek_p;
 }
 
 enum PARAM_NUM {

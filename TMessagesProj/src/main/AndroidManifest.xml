@@ -13,7 +13,7 @@
     </queries>
 
 
-    <uses-sdk tools:overrideLibrary="io.nekohasekai.ss_rust,io.nekohasekai.ssr_libev,com.google.mlkit.vision.segmentation.subject" />
+    <uses-sdk tools:overrideLibrary="io.nekohasekai.ss_rust,io.nekohasekai.ssr_libev,com.google.mlkit.vision.segmentation.subject,com.google.net.cronet.granular.cronet_embedded,com.google.net.cronet.granular.cronet_api,org.chromium.net.bundled,org.chromium.net,com.google.net.cronet.granular.cronet_shared,com.google.net.cronet.granular.cronet_common,com.google.net.cronet.granular.cronet_fallback,com.google.net.cronet.granular.httpengine_native_provider" />
 
     <supports-screens android:anyDensity="true"
                       android:largeScreens="true"

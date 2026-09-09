@@ -871,17 +871,12 @@ public class ConnectionsManager extends BaseController {
         }
         
         if ("webproxy".equals(secret)) {
-            String realSecret = "";
-            if (address.contains("/")) {
-                String[] parts = address.split("/");
-                if (parts.length > 1) {
-                    realSecret = parts[1];
-                }
-            }
-            WebProxyManager.INSTANCE.start(address);
-            return native_checkProxy(currentAccount, "127.0.0.1", WebProxyManager.INSTANCE.getPort(), "", "", realSecret, requestTimeDelegate);
+            return WebProxyManager.INSTANCE.checkProxyAvailability(
+                    address,
+                    requestTimeDelegate
+            );
         }
-        
+
         return native_checkProxy(currentAccount, address, port, username, password, secret, requestTimeDelegate);
     }
 

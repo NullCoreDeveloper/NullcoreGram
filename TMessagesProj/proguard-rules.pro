@@ -175,3 +175,4 @@
 -dontwarn javax.naming.directory.DirContext
 -dontwarn javax.naming.directory.InitialDirContext
 -dontwarn org.xbill.DNS.spi.DnsjavaInetAddressResolverProvider
+-dontwarn android.app.privatecompute.PccSandboxManager

@@ -298,6 +298,13 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                     if (!currentInfo.checking && !currentInfo.available) {
                         currentInfo.availableCheckTime = 0;
                     }
+                } else if (currentInfo.available) {
+                    if (currentInfo.ping != 0) {
+                        valueTextView.setText(getString(R.string.Available) + ", " + LocaleController.formatString("Ping", R.string.Ping, currentInfo.ping));
+                    } else {
+                        valueTextView.setText(getString(R.string.Available));
+                    }
+                    colorKey = Theme.key_windowBackgroundWhiteGreenText;
                 } else {
                     colorKey = Theme.key_windowBackgroundWhiteGrayText2;
                     valueTextView.setText(getString(R.string.Connecting));
@@ -447,6 +454,19 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
         }
     }
 
+    private static final long PROXY_LIVE_CHECK_INTERVAL_MS = 5000L;
+
+    private final Runnable proxyLiveCheckRunnable = new Runnable() {
+        @Override
+        public void run() {
+            checkProxyList(true);
+            AndroidUtilities.runOnUIThread(
+                    this,
+                    PROXY_LIVE_CHECK_INTERVAL_MS
+            );
+        }
+    };
+
     @Override
     public boolean onFragmentCreate() {
         super.onFragmentCreate();
@@ -465,12 +485,19 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
 
         updateRows(true);
 
+        AndroidUtilities.runOnUIThread(
+                proxyLiveCheckRunnable,
+                PROXY_LIVE_CHECK_INTERVAL_MS
+        );
+
         return true;
     }
 
     @Override
     public void onFragmentDestroy() {
         super.onFragmentDestroy();
+
+        AndroidUtilities.cancelRunOnUIThread(proxyLiveCheckRunnable);
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.proxyChangedByRotation);
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.proxySettingsChanged);
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.proxyCheckDone);
@@ -911,10 +938,14 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
     private void checkProxyList(boolean force) {
         for (int a = 0, count = proxyList.size(); a < count; a++) {
             final SharedConfig.ProxyInfo proxyInfo = proxyList.get(a);
-            if (proxyInfo.checking || SystemClock.elapsedRealtime() - proxyInfo.availableCheckTime < 2 * 60 * 1000) {
-                if (!force) {
-                    continue;
-                }
+
+            if (proxyInfo.checking) {
+                continue;
+            }
+            if (!force
+                    && SystemClock.elapsedRealtime() - proxyInfo.availableCheckTime
+                    < PROXY_LIVE_CHECK_INTERVAL_MS) {
+                continue;
             }
             proxyInfo.checking = true;
             proxyInfo.proxyCheckPingId = ConnectionsManager.getInstance(currentAccount).checkProxy(proxyInfo.address, proxyInfo.port, proxyInfo.username, proxyInfo.password, proxyInfo.secret, time -> AndroidUtilities.runOnUIThread(() -> {
@@ -992,18 +1023,14 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                 }
 
                 boolean checking = false;
-                if (!wasCheckedAllList) {
-                    for (SharedConfig.ProxyInfo info : proxyList) {
-                        if (info.checking || info.availableCheckTime == 0) {
-                            checking = true;
-                            break;
-                        }
-                    }
-                    if (!checking) {
-                        wasCheckedAllList = true;
+                for (SharedConfig.ProxyInfo info : proxyList) {
+                    if (info.checking) {
+                        checking = true;
+                        break;
                     }
                 }
                 if (!checking) {
+                    wasCheckedAllList = true;
                     updateRows(true);
                 }
             }
