@@ -124,7 +124,7 @@ jobs:
       - name: Checkout Library
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
-          git submodule update --init 'TMessagesProj/jni/*'
+          git submodule update --init
       - name: FFmpeg Cache
         uses: actions/cache@v4
         if: steps.cache.outputs.cache-hit != 'true'
@@ -184,6 +184,9 @@ jobs:
           echo "y" | sdkmanager --install "ndk;27.2.12479018" --sdk_root=${ANDROID_SDK_ROOT} &> /dev/null
           echo "sdk.dir=${ANDROID_HOME}" > local.properties
           echo "ndk.dir=${ANDROID_HOME}/ndk/27.2.12479018" >> local.properties
+      - name: Checkout Library
+        run: |
+          git submodule update --init 'TMessagesProj/lib/*'
       - name: Fetch Status
         run: |
           sed -i 's/\/\///g' settings.gradle
@@ -212,6 +215,7 @@ jobs:
       - name: Debug Build
         run: |
           export LOCAL_PROPERTIES="${{ secrets.LOCAL_PROPERTIES }}"
+          export SENTRY_AUTH_TOKEN="${{ secrets.SENTRY_AUTH_TOKEN }}"
           ./gradlew TMessagesProj:assembleRelease --build-cache --no-configuration-cache
 
           APK=$(find TMessagesProj/build/outputs/apk -name '*arm64-v8a*.apk')

@@ -273,8 +273,7 @@ private:
 
 #ifdef ANDROID
 extern JavaVM *javaVm;
-//extern JNIEnv *jniEnv[MAX_ACCOUNT_COUNT];
-extern std::vector<JNIEnv*> jniEnv;
+extern JNIEnv *jniEnv[MAX_ACCOUNT_COUNT];
 extern jclass jclass_ByteBuffer;
 extern jmethodID jclass_ByteBuffer_allocateDirect;
 #endif

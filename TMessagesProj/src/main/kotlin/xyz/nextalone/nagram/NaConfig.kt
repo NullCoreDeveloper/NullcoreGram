@@ -316,6 +316,12 @@ object NaConfig {
             ConfigItem.configTypeString,
             ""
         )
+    val showEditedIcon =
+        addConfig(
+            "ShowEditedIcon",
+            ConfigItem.configTypeBool,
+            false
+        )
     val disableProxyWhenVpnEnabled =
         addConfig(
             "DisableProxyWhenVpnEnabled",
@@ -1322,6 +1328,24 @@ object NaConfig {
     val disableGlareEffects =
         addConfig(
             "DisableGlareEffects",
+            ConfigItem.configTypeBool,
+            false
+        )
+    val liquidGlassAngle =
+        addConfig(
+            "LiquidGlassAngle",
+            ConfigItem.configTypeInt,
+            0
+    )
+    val liquidGlassIntensity =
+        addConfig(
+            "LiquidGlassIntensity",
+            ConfigItem.configTypeInt,
+            75
+        )
+    val disableGooeyAvatarAnimation =
+        addConfig(
+            "DisableGooeyAvatarAnimation",
             ConfigItem.configTypeBool,
             false
         )
