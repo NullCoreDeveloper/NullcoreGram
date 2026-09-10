@@ -18,15 +18,48 @@ object DnsFactory {
     private const val STATUS_NOERROR = 0
     private const val STATUS_NXDOMAIN = 3
 
-    fun providers() = if (NekoConfig.customDoH.String().isNotBlank()) arrayOf(
-        NekoConfig.customDoH.String())
-    else arrayOf(
-        "https://1.1.1.1/dns-query",
-        "https://1.0.0.1/dns-query",
-        "https://[2606:4700:4700::1111]/dns-query",
-        "https://[2606:4700:4700::1001]/dns-query",
-        "https://8.8.8.8/resolve",
-    )
+    fun providers(): Array<String> {
+        val custom = NekoConfig.customDoH.String().trim()
+        val providerMode = NekoConfig.dohProvider.Int()
+        if (providerMode == 6 && custom.isNotEmpty()) {
+            return arrayOf(custom)
+        }
+        return when (providerMode) {
+            1 -> arrayOf(
+                "https://185.222.222.222/dns-query",
+                "https://45.11.45.11/dns-query",
+                "https://doh.dns.sb/dns-query"
+            )
+            2 -> arrayOf(
+                "https://94.140.14.14/resolve",
+                "https://94.140.15.15/resolve",
+                "https://dns.adguard-dns.com/resolve"
+            )
+            3 -> arrayOf(
+                "https://8.8.8.8/resolve",
+                "https://8.8.4.4/resolve",
+                "https://dns.google/resolve"
+            )
+            4 -> arrayOf(
+                "https://1.1.1.1/dns-query",
+                "https://1.0.0.1/dns-query",
+                "https://cloudflare-dns.com/dns-query"
+            )
+            5 -> arrayOf(
+                "https://223.5.5.5/resolve",
+                "https://223.6.6.6/resolve",
+                "https://dns.alidns.com/resolve"
+            )
+            else -> if (custom.isNotEmpty()) arrayOf(custom) else arrayOf(
+                "https://185.222.222.222/dns-query",
+                "https://94.140.14.14/resolve",
+                "https://8.8.8.8/resolve",
+                "https://1.1.1.1/dns-query",
+                "https://45.11.45.11/dns-query",
+                "https://94.140.15.15/resolve"
+            )
+        }
+    }
 
     private val cache = mutableMapOf<String, List<InetAddress>>()
     private val txtCache = mutableMapOf<String, List<String>>()

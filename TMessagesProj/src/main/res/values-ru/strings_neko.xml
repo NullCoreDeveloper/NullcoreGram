@@ -127,8 +127,16 @@
     <string name="disableSwipeToNextChannel">Выключить проведение по экрану для перехода в следующий канал</string>
     <string name="maxRecentStickerCount">Максимум недавних стикеров</string>
     <string name="customGroupVoipAudioBitrate">Битрейт VoIP-аудио для группы</string>
-    <string name="customDoH">Пользовательский DoH</string>
     <string name="useSystemDNS">Системный DNS</string>
+    <string name="dohProvider">Провайдер DoH</string>
+    <string name="DoHProviderAuto">Авто (Пул устойчивых прямых IP)</string>
+    <string name="DoHProviderDnsSb">DNS.SB (Германия, без логов, обход цензуры)</string>
+    <string name="DoHProviderAdGuard">AdGuard (Приватный, без фильтрации)</string>
+    <string name="DoHProviderGoogle">Google Public DNS</string>
+    <string name="DoHProviderCloudflare">Cloudflare DNS</string>
+    <string name="DoHProviderAliDNS">AliDNS (Alibaba Cloud)</string>
+    <string name="DoHProviderCustom">Пользовательский URL</string>
+    <string name="customDoH">Пользовательский DoH URL</string>
     <string name="HideTimeForSticker">Скрыть время для стикеров</string>
     <string name="UseMediaStreamInVoip">Использовать медиапоток в VoIP</string>
     <string name="TakeGIFasVideo">Воспринимать GIF как видео</string>

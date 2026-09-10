@@ -134,7 +134,15 @@
     <string name="HideTimeForSticker">Hide time for stickers</string>
     <string name="hideGroupSticker">Hide group sticker</string>
     <string name="useSystemDNS">Use system DNS</string>
-    <string name="customDoH">Custom DoH</string>
+    <string name="dohProvider">DoH Provider</string>
+    <string name="DoHProviderAuto">Auto (Direct-IP resilient pool)</string>
+    <string name="DoHProviderDnsSb">DNS.SB (Germany, Zero-Log, Anti-Censorship)</string>
+    <string name="DoHProviderAdGuard">AdGuard (Privacy, Non-filtering)</string>
+    <string name="DoHProviderGoogle">Google Public DNS</string>
+    <string name="DoHProviderCloudflare">Cloudflare DNS</string>
+    <string name="DoHProviderAliDNS">AliDNS (Alibaba Cloud)</string>
+    <string name="DoHProviderCustom">Custom DoH</string>
+    <string name="customDoH">Custom DoH URL</string>
     <string name="customGroupVoipAudioBitrate">Group VoIP Audio Bitrate</string>
     <string name="maxRecentStickerCount">Max recent stickers</string>
     <string name="disableSwipeToNextChannel">Disable swipe to next channel</string>

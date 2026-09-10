@@ -76,15 +76,6 @@ keystorePwd = keystorePwd ?: System.getenv("KEYSTORE_PASS")
 alias = alias ?: System.getenv("ALIAS_NAME")
 pwd = pwd ?: System.getenv("ALIAS_PASS")
 
-def webProxyDirectPrimaryHost =
-        properties?.getProperty("WEB_PROXY_DIRECT_PRIMARY_HOST") ?:
-        System.getenv("WEB_PROXY_DIRECT_PRIMARY_HOST") ?:
-        ""
-
-def webProxyDirectFallbackHost =
-        properties?.getProperty("WEB_PROXY_DIRECT_FALLBACK_HOST") ?:
-        System.getenv("WEB_PROXY_DIRECT_FALLBACK_HOST") ?:
-        ""
 
 def targetTask = ""
 if (!gradle.startParameter.taskNames.isEmpty()) {
@@ -247,52 +238,14 @@ android {
     productFlavors {
         create("public") {
             dimension "version"
-
-            buildConfigField "boolean",
-                    "LAB_BUILD",
-                    "false"
-
-            buildConfigField "String",
-                    "WEB_PROXY_DIRECT_PRIMARY_HOST",
-                    "\"\""
-
-            buildConfigField "String",
-                    "WEB_PROXY_DIRECT_FALLBACK_HOST",
-                    "\"\""
         }
 
         create("private") {
             dimension "version"
-
-            buildConfigField "boolean",
-                    "LAB_BUILD",
-                    "false"
-
-            buildConfigField "String",
-                    "WEB_PROXY_DIRECT_PRIMARY_HOST",
-                    "\"" + webProxyDirectPrimaryHost + "\""
-
-            buildConfigField "String",
-                    "WEB_PROXY_DIRECT_FALLBACK_HOST",
-                    "\"" + webProxyDirectFallbackHost + "\""
         }
 
         create("lab") {
             dimension "version"
-
-            buildConfigField "boolean",
-                    "LAB_BUILD",
-                    "true"
-
-            // LAB intentionally mirrors Public network configuration.
-            // Temporary diagnostics/tests may be gated by LAB_BUILD.
-            buildConfigField "String",
-                    "WEB_PROXY_DIRECT_PRIMARY_HOST",
-                    "\"\""
-
-            buildConfigField "String",
-                    "WEB_PROXY_DIRECT_FALLBACK_HOST",
-                    "\"\""
         }
     }
 
@@ -438,16 +391,6 @@ dependencies {
     // map
     implementation "org.maplibre.gl:android-sdk:11.13.5"
 
-    // Cronet
-    // Public/private use the production copy of the proven strict-ECH Cronet.
-    publicImplementation files("${rootProject.projectDir}/local-libs/cronet-native-patch/cronet-bundled-500.0.2-nullcore-strict-ech.aar")
-    privateImplementation files("${rootProject.projectDir}/local-libs/cronet-native-patch/cronet-bundled-500.0.2-nullcore-strict-ech.aar")
-
-    // LAB keeps the byte-identical known-good strict-ECH Cronet test artifact.
-    labImplementation files("${rootProject.projectDir}/local-libs/cronet-native-test/cronet-bundled-500.0.2-nullcore-strict-ech-test.aar")
-
-    // Cronet Java/API classes are shared by all variants.
-    implementation files("${rootProject.projectDir}/local-libs/cronet-strict-patch/cronet-500.0.2-strict-ech.aar")
 
     // ktor
     implementation "io.ktor:ktor-client-core:3.3.0"

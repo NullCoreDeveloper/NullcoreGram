@@ -176,8 +176,3 @@
 -dontwarn javax.naming.directory.InitialDirContext
 -dontwarn org.xbill.DNS.spi.DnsjavaInetAddressResolverProvider
 -dontwarn android.app.privatecompute.PccSandboxManager
-
-# Chromium & Cronet reflection and internal classes
--keep class org.chromium.** { *; }
--keep class org.chromium.net.** { *; }
--dontwarn org.chromium.**

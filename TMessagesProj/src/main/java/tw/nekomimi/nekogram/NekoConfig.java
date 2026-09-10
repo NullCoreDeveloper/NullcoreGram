@@ -137,11 +137,12 @@ public class NekoConfig {
     public static ConfigItem confirmSendSticker = addConfig("ConfirmSendSticker", configTypeBool, false);
     public static ConfigItem confirmSendMedia = addConfig("ConfirmSendMedia", configTypeBool, false);
     public static ConfigItem confirmSendGif = addConfig("ConfirmSendGif", configTypeBool, false);
-    public static ConfigItem videoPlayerGestures = addConfig("VideoPlayerGestures", configTypeBool, true);
+    public static ConfigItem videoPlayerGestures = addConfig("VideoPlayerGestures", configTypeBool, false);
     public static ConfigItem askBeforeCall = addConfig("AskBeforeCalling", configTypeBool, false);
     public static ConfigItem disableNumberRounding = addConfig("DisableNumberRounding", configTypeBool, false);
 
     public static ConfigItem useSystemDNS = addConfig("useSystemDNS", configTypeBool, false);
+    public static ConfigItem dohProvider = addConfig("dohProvider", configTypeInt, 0);
     public static ConfigItem customDoH = addConfig("customDoH", configTypeString, "");
 
     public static ConfigItem disableAppBarShadow = addConfig("DisableAppBarShadow", configTypeBool, false);
