@@ -34571,46 +34571,7 @@ public class ChatActivity extends BaseFragment implements
                 break;
             }
             case OPTION_SHARE: {
-                String path = selectedObject.messageOwner.attachPath;
-                if (path != null && path.length() > 0) {
-                    File temp = new File(path);
-                    if (!temp.exists()) {
-                        path = null;
-                    }
-                }
-                if (TextUtils.isEmpty(path)) {
-                    File f = FileLoader.getInstance(currentAccount).getPathToMessage(selectedObject.messageOwner);
-                    if (f != null && f.exists()) {
-                        path = f.getPath();
-                    }
-                }
-                if (TextUtils.isEmpty(path)) {
-                    File f = FileLoader.getInstance(currentAccount).getPathToMessage(selectedObject.messageOwner, true, true);
-                    if (f != null && f.exists()) {
-                        path = f.getPath();
-                    }
-                }
-                Intent intent = new Intent(Intent.ACTION_SEND);
-                intent.setType(selectedObject.getMimeType());
-                File f = new File(path);
-                if (Build.VERSION.SDK_INT >= 24) {
-                    try {
-                        Uri uri = FileProvider.getUriForFile(getParentActivity(), ApplicationLoader.getApplicationId() + ".provider", f);
-                        intent.putExtra(Intent.EXTRA_STREAM, uri);
-                        intent.setClipData(ClipData.newRawUri(null, uri));
-                        intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    } catch (Exception ignore) {
-                        intent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(f));
-                    }
-                } else {
-                    intent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(f));
-                }
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                try {
-                    getParentActivity().startActivityForResult(Intent.createChooser(intent, LocaleController.getString(R.string.ShareFile)), 500);
-                } catch (Throwable ignore) {
-
-                }
+                shareFile(selectedObject, selectedObject != null ? selectedObject.getDocument() : null);
                 break;
             }
             case OPTION_SAVE_TO_GALLERY2: {
@@ -35408,6 +35369,78 @@ public class ChatActivity extends BaseFragment implements
         selectedObjectGroup = null;
         selectedObjectToEditCaption = null;
         closeMenu(!preserveDim);
+    }
+
+    public void shareFile(MessageObject selectedObject, TLRPC.Document document) {
+        if (getParentActivity() == null) {
+            return;
+        }
+        String path = null;
+        if (selectedObject != null && selectedObject.messageOwner != null) {
+            path = selectedObject.messageOwner.attachPath;
+            if (path != null && path.length() > 0) {
+                File temp = new File(path);
+                if (!temp.exists()) {
+                    path = null;
+                }
+            }
+            if (TextUtils.isEmpty(path)) {
+                File f = FileLoader.getInstance(currentAccount).getPathToMessage(selectedObject.messageOwner);
+                if (f != null && f.exists()) {
+                    path = f.getPath();
+                }
+            }
+            if (TextUtils.isEmpty(path)) {
+                File f = FileLoader.getInstance(currentAccount).getPathToMessage(selectedObject.messageOwner, true, true);
+                if (f != null && f.exists()) {
+                    path = f.getPath();
+                }
+            }
+        }
+        if (TextUtils.isEmpty(path) && document != null) {
+            File f = FileLoader.getInstance(currentAccount).getPathToAttach(document, true);
+            if (f != null && f.exists()) {
+                path = f.getPath();
+            }
+        }
+        if (TextUtils.isEmpty(path) && document != null) {
+            File f = FileLoader.getInstance(currentAccount).getPathToAttach(document, false);
+            if (f != null && f.exists()) {
+                path = f.getPath();
+            }
+        }
+        if (TextUtils.isEmpty(path)) {
+            if (document != null && selectedObject != null) {
+                FileLoader.getInstance(currentAccount).loadFile(document, selectedObject, 0, 0);
+                BulletinFactory.of(this).createDownloadBulletin(BulletinFactory.FileType.UNKNOWNS, 1, themeDelegate).show();
+            }
+            return;
+        }
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        String mime = selectedObject != null ? selectedObject.getMimeType() : (document != null ? document.mime_type : "application/octet-stream");
+        if (TextUtils.isEmpty(mime)) {
+            mime = "application/octet-stream";
+        }
+        intent.setType(mime);
+        File f = new File(path);
+        if (Build.VERSION.SDK_INT >= 24) {
+            try {
+                Uri uri = FileProvider.getUriForFile(getParentActivity(), ApplicationLoader.getApplicationId() + ".provider", f);
+                intent.putExtra(Intent.EXTRA_STREAM, uri);
+                intent.setClipData(ClipData.newRawUri(null, uri));
+                intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            } catch (Exception ignore) {
+                intent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(f));
+            }
+        } else {
+            intent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(f));
+        }
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        try {
+            getParentActivity().startActivityForResult(Intent.createChooser(intent, LocaleController.getString(R.string.ShareFile)), 500);
+        } catch (Throwable ignore) {
+
+        }
     }
 
     private int processSelectedOptionLongClick(View view, int option) {
@@ -40798,9 +40831,13 @@ public class ChatActivity extends BaseFragment implements
             if (cell == null || document == null || getParentLayout() == null || !canSaveRichDocument(cell)) {
                 return;
             }
-            ItemOptions.makeOptions(ChatActivity.this, cell)
-                .add(R.drawable.msg_download, getString(R.string.SaveToDownloads), () -> saveRichDocument(cell, document))
-                .setDrawScrim(false)
+            final MessageObject source = cell.getMessageObject();
+            ItemOptions options = ItemOptions.makeOptions(ChatActivity.this, cell)
+                .add(R.drawable.msg_download, getString(R.string.SaveToDownloads), () -> saveRichDocument(cell, document));
+            if (!cell.needDrawBluredPreview()) {
+                options.add(R.drawable.msg_shareout, getString(R.string.ShareFile), () -> shareFile(source, document));
+            }
+            options.setDrawScrim(false)
                 .show();
         }
 
@@ -48304,6 +48341,9 @@ public class ChatActivity extends BaseFragment implements
                                     items.add(LocaleController.getString(pollMediaInDescription != null && MessageObject.isMusicDocument(pollMediaInDescription.document) ? R.string.SaveToMusic : R.string.SaveToDownloads));
                                     options.add(OPTION_SAVE_TO_DOWNLOADS_OR_MUSIC);
                                     icons.add(R.drawable.msg_download);
+                                    items.add(LocaleController.getString(R.string.ShareFile));
+                                    options.add(OPTION_SHARE);
+                                    icons.add(R.drawable.msg_shareout);
                                 }
                             }
                         }
@@ -48350,10 +48390,16 @@ public class ChatActivity extends BaseFragment implements
                             items.add(LocaleController.getString(R.string.SaveToMusic));
                             options.add(OPTION_SAVE_TO_DOWNLOADS_OR_MUSIC);
                             icons.add(R.drawable.msg_download);
+                            items.add(LocaleController.getString(R.string.ShareFile));
+                            options.add(OPTION_SHARE);
+                            icons.add(R.drawable.msg_shareout);
                         } else if (selectedObject.isDocument() && !noforwardsOrPaidMedia) {
                             items.add(LocaleController.getString(R.string.SaveToDownloads));
                             options.add(OPTION_SAVE_TO_DOWNLOADS_OR_MUSIC);
                             icons.add(R.drawable.msg_download);
+                            items.add(LocaleController.getString(R.string.ShareFile));
+                            options.add(OPTION_SHARE);
+                            icons.add(R.drawable.msg_shareout);
                         }
                     }
                 } else if (type == 3 && !noforwardsOrPaidMedia) {
