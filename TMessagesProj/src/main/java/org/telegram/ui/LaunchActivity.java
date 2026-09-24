@@ -192,6 +192,7 @@ import org.telegram.ui.Components.JoinGroupAlert;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.PasscodeView;
 import org.telegram.ui.Components.PasscodeViewDialog;
+import tw.nekomimi.nekogram.helpers.PasscodeHelper;
 import org.telegram.ui.Components.PhonebookShareAlert;
 import org.telegram.ui.Components.PipRoundVideoView;
 import org.telegram.ui.Components.PipVideoOverlay;
@@ -6914,6 +6915,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             }
         });
         onPasscodePause();
+        PasscodeHelper.onAppPaused(this);
         try {
             if (actionBarLayout != null) {
                 actionBarLayout.onPause();

@@ -18,6 +18,8 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
+import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.UserObject;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.HeaderCell;
@@ -41,6 +43,13 @@ public class NekoPasscodeSettingsActivity extends BaseNekoSettingsActivity {
     private int showInSettingsRow;
     private int showInSettings2Row;
 
+    private int enableStealthModeRow;
+    private int stealthToggleRow;
+    private int safeAccountRow;
+    private int autoLockOnMinimizeRow;
+    private int secretGestureRow;
+    private int stealthSettings2Row;
+
     private int accountsStartRow;
     private int accountsEndRow;
 
@@ -56,6 +65,7 @@ public class NekoPasscodeSettingsActivity extends BaseNekoSettingsActivity {
 
     @Override
     public boolean onFragmentCreate() {
+        accounts.clear();
         for (int a : SharedConfig.activeAccounts) {
             var u = AccountInstance.getInstance(a).getUserConfig().getCurrentUser();
             if (u != null) {
@@ -71,7 +81,65 @@ public class NekoPasscodeSettingsActivity extends BaseNekoSettingsActivity {
             BulletinFactory.of(this).createErrorBulletin(LocaleController.getString("PasscodeNeeded", R.string.PasscodeNeeded)).show();
             return;
         }
-        if (position > accountsStartRow && position < accountsEndRow) {
+        if (position == enableStealthModeRow) {
+            boolean current = PasscodeHelper.isStealthModeEnabled();
+            PasscodeHelper.setStealthModeEnabled(!current);
+            if (view instanceof TextCheckCell) {
+                ((TextCheckCell) view).setChecked(!current);
+            }
+            updateRows();
+            listAdapter.notifyDataSetChanged();
+            getNotificationCenter().postNotificationName(NotificationCenter.mainUserInfoChanged);
+        } else if (position == stealthToggleRow) {
+            if (PasscodeHelper.isStealthModeRevealed()) {
+                PasscodeHelper.lockHiddenAccounts(getParentActivity());
+                BulletinFactory.of(this).createSimpleBulletin(R.drawable.msg_filled_shield, LocaleController.getString("PasscodeStealthModeHidden", R.string.PasscodeStealthModeHidden)).show();
+            } else {
+                PasscodeHelper.revealAllHiddenAccounts();
+                BulletinFactory.of(this).createSimpleBulletin(R.drawable.msg_unlock, LocaleController.getString("PasscodeStealthModeRevealed", R.string.PasscodeStealthModeRevealed)).show();
+            }
+            listAdapter.notifyItemChanged(stealthToggleRow);
+            getNotificationCenter().postNotificationName(NotificationCenter.mainUserInfoChanged);
+        } else if (position == safeAccountRow) {
+            if (accounts.isEmpty()) return;
+            ArrayList<CharSequence> names = new ArrayList<>();
+            ArrayList<Integer> validAccounts = new ArrayList<>();
+            for (int a : accounts) {
+                var user = AccountInstance.getInstance(a).getUserConfig().getCurrentUser();
+                if (user != null) {
+                    names.add(UserObject.getUserName(user) + (PasscodeHelper.isAccountConfiguredHidden(a) ? " (" + LocaleController.getString("PasscodeHideAccount", R.string.PasscodeHideAccount) + ")" : ""));
+                    validAccounts.add(a);
+                }
+            }
+            int currentSafe = PasscodeHelper.getSafeAccount();
+            int selectedIdx = validAccounts.indexOf(currentSafe);
+            if (selectedIdx < 0) selectedIdx = 0;
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+            builder.setTitle(LocaleController.getString("PasscodeSafeAccount", R.string.PasscodeSafeAccount));
+            int finalSelectedIdx = selectedIdx;
+            builder.setSingleChoiceItems(names.toArray(new CharSequence[0]), finalSelectedIdx, (dialog, which) -> {
+                int chosen = validAccounts.get(which);
+                PasscodeHelper.setSafeAccount(chosen);
+                dialog.dismiss();
+                listAdapter.notifyItemChanged(safeAccountRow);
+                BulletinFactory.of(this).createSimpleBulletin(R.drawable.msg_check, LocaleController.getString("PasscodeSetAsSafeSuccess", R.string.PasscodeSetAsSafeSuccess)).show();
+            });
+            builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
+            showDialog(builder.create());
+        } else if (position == autoLockOnMinimizeRow) {
+            boolean current = PasscodeHelper.isAutoLockOnMinimize();
+            PasscodeHelper.setAutoLockOnMinimize(!current);
+            if (view instanceof TextCheckCell) {
+                ((TextCheckCell) view).setChecked(!current);
+            }
+        } else if (position == secretGestureRow) {
+            boolean current = PasscodeHelper.isSecretGestureEnabled();
+            PasscodeHelper.setSecretGestureEnabled(!current);
+            if (view instanceof TextCheckCell) {
+                ((TextCheckCell) view).setChecked(!current);
+            }
+        } else if (position > accountsStartRow && position < accountsEndRow) {
             var account = accounts.get(position - accountsStartRow - 1);
             var builder = new AlertDialog.Builder(getParentActivity());
 
@@ -80,11 +148,12 @@ public class NekoPasscodeSettingsActivity extends BaseNekoSettingsActivity {
 
             if (PasscodeHelper.hasPasscodeForAccount(account)) {
                 TextCheckCell hideAccount = new TextCheckCell(getParentActivity(), 23, true);
-                hideAccount.setTextAndCheck(LocaleController.getString("PasscodeHideAccount", R.string.PasscodeHideAccount), PasscodeHelper.isAccountHidden(account), false);
+                hideAccount.setTextAndCheck(LocaleController.getString("PasscodeHideAccount", R.string.PasscodeHideAccount), PasscodeHelper.isAccountConfiguredHidden(account), false);
                 hideAccount.setOnClickListener(view13 -> {
                     boolean hide = !hideAccount.isChecked();
                     PasscodeHelper.setHideAccount(account, hide);
                     hideAccount.setChecked(hide);
+                    listAdapter.notifyItemChanged(position);
                     getNotificationCenter().postNotificationName(NotificationCenter.mainUserInfoChanged);
                 });
                 hideAccount.setBackground(Theme.getSelectorDrawable(false));
@@ -94,12 +163,23 @@ public class NekoPasscodeSettingsActivity extends BaseNekoSettingsActivity {
             TextCheckCell allowPanic = new TextCheckCell(getParentActivity(), 23, true);
             allowPanic.setTextAndCheck(LocaleController.getString("PasscodeAllowPanic", R.string.PasscodeAllowPanic), PasscodeHelper.isAccountAllowPanic(account), false);
             allowPanic.setOnClickListener(view13 -> {
-                boolean hide = !allowPanic.isChecked();
-                PasscodeHelper.setAccountAllowPanic(account, hide);
-                allowPanic.setChecked(hide);
+                boolean panic = !allowPanic.isChecked();
+                PasscodeHelper.setAccountAllowPanic(account, panic);
+                allowPanic.setChecked(panic);
             });
             allowPanic.setBackground(Theme.getSelectorDrawable(false));
             linearLayout.addView(allowPanic, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+
+            AlertDialog.AlertDialogCell setSafeAccount = new AlertDialog.AlertDialogCell(getParentActivity(), null);
+            setSafeAccount.setTextAndIcon(LocaleController.getString("PasscodeSetAsSafe", R.string.PasscodeSetAsSafe), 0);
+            setSafeAccount.setOnClickListener(viewSafe -> {
+                builder.getDismissRunnable().run();
+                PasscodeHelper.setSafeAccount(account);
+                listAdapter.notifyItemChanged(safeAccountRow);
+                BulletinFactory.of(this).createSimpleBulletin(R.drawable.msg_check, LocaleController.getString("PasscodeSetAsSafeSuccess", R.string.PasscodeSetAsSafeSuccess)).show();
+            });
+            setSafeAccount.setBackground(Theme.getSelectorDrawable(false));
+            linearLayout.addView(setSafeAccount, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
             AlertDialog.AlertDialogCell editPasscode = new AlertDialog.AlertDialogCell(getParentActivity(), null);
             editPasscode.setTextAndIcon(PasscodeHelper.hasPasscodeForAccount(account) ? LocaleController.getString("PasscodeEdit", R.string.PasscodeEdit) : LocaleController.getString("PasscodeSet", R.string.PasscodeSet), 0);
@@ -119,7 +199,7 @@ public class NekoPasscodeSettingsActivity extends BaseNekoSettingsActivity {
                             .setMessage(LocaleController.getString(R.string.PasscodeRemoveConfirmMessage))
                             .setNegativeButton(LocaleController.getString(R.string.Cancel), null)
                             .setPositiveButton(LocaleController.getString(R.string.DisablePasscodeTurnOff), (dialog, which) -> {
-                                var hidden = PasscodeHelper.isAccountHidden(account);
+                                var hidden = PasscodeHelper.isAccountConfiguredHidden(account);
                                 PasscodeHelper.removePasscodeForAccount(account);
                                 listAdapter.notifyItemChanged(position);
                                 if (hidden) {
@@ -193,6 +273,20 @@ public class NekoPasscodeSettingsActivity extends BaseNekoSettingsActivity {
         showInSettingsRow = rowCount++;
         showInSettings2Row = rowCount++;
 
+        enableStealthModeRow = rowCount++;
+        if (PasscodeHelper.isStealthModeEnabled()) {
+            stealthToggleRow = rowCount++;
+            safeAccountRow = rowCount++;
+            autoLockOnMinimizeRow = rowCount++;
+            secretGestureRow = rowCount++;
+        } else {
+            stealthToggleRow = -1;
+            safeAccountRow = -1;
+            autoLockOnMinimizeRow = -1;
+            secretGestureRow = -1;
+        }
+        stealthSettings2Row = rowCount++;
+
         accountsStartRow = rowCount++;
         rowCount += accounts.size();
         accountsEndRow = rowCount++;
@@ -206,13 +300,8 @@ public class NekoPasscodeSettingsActivity extends BaseNekoSettingsActivity {
         }
         panicCode2Row = rowCount++;
 
-        if (false) {
-            clearPasscodesRow = rowCount++;
-            clearPasscodes2Row = rowCount++;
-        } else {
-            clearPasscodesRow = -1;
-            clearPasscodes2Row = -1;
-        }
+        clearPasscodesRow = -1;
+        clearPasscodes2Row = -1;
     }
 
     private class ListAdapter extends BaseListAdapter {
@@ -236,7 +325,14 @@ public class NekoPasscodeSettingsActivity extends BaseNekoSettingsActivity {
                     TextSettingsCell textCell = (TextSettingsCell) holder.itemView;
                     textCell.setCanDisable(true);
                     textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
-                    if (position == setPanicCodeRow) {
+                    if (position == stealthToggleRow) {
+                        textCell.setText(PasscodeHelper.isStealthModeRevealed() ? LocaleController.getString("PasscodeStealthHide", R.string.PasscodeStealthHide) : LocaleController.getString("PasscodeStealthToggle", R.string.PasscodeStealthToggle), true);
+                    } else if (position == safeAccountRow) {
+                        int safe = PasscodeHelper.getSafeAccount();
+                        var u = AccountInstance.getInstance(safe).getUserConfig().getCurrentUser();
+                        String name = u != null ? UserObject.getUserName(u) : ("Account " + safe);
+                        textCell.setTextAndValue(LocaleController.getString("PasscodeSafeAccount", R.string.PasscodeSafeAccount), name, true);
+                    } else if (position == setPanicCodeRow) {
                         textCell.setText(PasscodeHelper.hasPanicCode() ? LocaleController.getString("PasscodePanicCodeEdit", R.string.PasscodePanicCodeEdit) : LocaleController.getString("PasscodePanicCodeSet", R.string.PasscodePanicCodeSet), removePanicCodeRow != -1);
                     } else if (position == clearPasscodesRow) {
                         textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteRedText3));
@@ -252,6 +348,12 @@ public class NekoPasscodeSettingsActivity extends BaseNekoSettingsActivity {
                     textCell.setEnabled(passcodeSet, null);
                     if (position == showInSettingsRow) {
                         textCell.setTextAndCheck(LocaleController.getString("PasscodeShowInSettings", R.string.PasscodeShowInSettings), !PasscodeHelper.isSettingsHidden(), false);
+                    } else if (position == enableStealthModeRow) {
+                        textCell.setTextAndCheck(LocaleController.getString("PasscodeEnableStealthMode", R.string.PasscodeEnableStealthMode), PasscodeHelper.isStealthModeEnabled(), true);
+                    } else if (position == autoLockOnMinimizeRow) {
+                        textCell.setTextAndCheck(LocaleController.getString("PasscodeAutoLockOnMinimize", R.string.PasscodeAutoLockOnMinimize), PasscodeHelper.isAutoLockOnMinimize(), true);
+                    } else if (position == secretGestureRow) {
+                        textCell.setTextAndCheck(LocaleController.getString("PasscodeSecretGesture", R.string.PasscodeSecretGesture), PasscodeHelper.isSecretGestureEnabled(), false);
                     }
                     break;
                 }
@@ -271,6 +373,10 @@ public class NekoPasscodeSettingsActivity extends BaseNekoSettingsActivity {
                     cell.setBackground(Theme.getThemedDrawable(mContext, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
                     if (position == accountsEndRow) {
                         cell.setText(LocaleController.getString("PasscodeAbout", R.string.PasscodeAbout));
+                    } else if (position == stealthSettings2Row) {
+                        cell.setText(PasscodeHelper.isStealthModeEnabled()
+                                ? LocaleController.getString("PasscodeAutoLockOnMinimizeAbout", R.string.PasscodeAutoLockOnMinimizeAbout)
+                                : LocaleController.getString("PasscodeEnableStealthModeAbout", R.string.PasscodeEnableStealthModeAbout));
                     } else if (position == panicCode2Row) {
                         cell.setText(LocaleController.getString("PasscodePanicCodeAbout", R.string.PasscodePanicCodeAbout));
                         if (clearPasscodesRow == -1) {
@@ -312,13 +418,13 @@ public class NekoPasscodeSettingsActivity extends BaseNekoSettingsActivity {
         public int getItemViewType(int position) {
             if (position == clearPasscodes2Row) {
                 return 1;
-            } else if (position == clearPasscodesRow || position == setPanicCodeRow || position == removePanicCodeRow) {
+            } else if (position == clearPasscodesRow || position == setPanicCodeRow || position == removePanicCodeRow || position == stealthToggleRow || position == safeAccountRow) {
                 return 2;
-            } else if (position == showInSettingsRow) {
+            } else if (position == showInSettingsRow || position == enableStealthModeRow || position == autoLockOnMinimizeRow || position == secretGestureRow) {
                 return 3;
             } else if (position == accountsStartRow || position == panicCodeRow) {
                 return 4;
-            } else if (position == showInSettings2Row || position == accountsEndRow || position == panicCode2Row) {
+            } else if (position == showInSettings2Row || position == accountsEndRow || position == panicCode2Row || position == stealthSettings2Row) {
                 return 7;
             } else if (position > accountsStartRow && position < accountsEndRow) {
                 return 11;

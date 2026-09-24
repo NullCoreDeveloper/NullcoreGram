@@ -158,6 +158,7 @@ import org.telegram.ui.ActionBar.ThemeDescription;
 import org.telegram.ui.Adapters.DialogsAdapter;
 import org.telegram.ui.Adapters.DialogsSearchAdapter;
 import org.telegram.ui.Adapters.FiltersView;
+import tw.nekomimi.nekogram.helpers.PasscodeHelper;
 import org.telegram.ui.Cells.ActiveGiftAuctionsHintCell;
 import org.telegram.ui.Cells.AnimatedStatusView;
 import org.telegram.ui.Cells.ArchiveHintInnerCell;
@@ -3642,6 +3643,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             actionBar.setClipContent(true);
         //}
         actionBar.setTitleActionRunnable(() -> {
+            PasscodeHelper.onTitleTapped(this);
             if (initialDialogsType != DIALOGS_TYPE_WIDGET) {
                 hideFloatingButton(false);
             }
@@ -14607,6 +14609,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
         accountNumbers.clear();
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+            if (PasscodeHelper.isAccountHidden(a)) continue;
             if (UserConfig.getInstance(a).isClientActivated()) {
                 accountNumbers.add(a);
             }

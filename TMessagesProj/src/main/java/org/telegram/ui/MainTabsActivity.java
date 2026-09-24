@@ -403,6 +403,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
                 }
 
                 if (viewPager.getCurrentPosition() == position) {
+                    PasscodeHelper.onTitleTapped(this);
                     final BaseFragment fragment = getCurrentVisibleFragment();
                     if (fragment instanceof MainTabsActivity.TabFragmentDelegate) {
                         ((MainTabsActivity.TabFragmentDelegate) fragment).onParentScrollToTop();
