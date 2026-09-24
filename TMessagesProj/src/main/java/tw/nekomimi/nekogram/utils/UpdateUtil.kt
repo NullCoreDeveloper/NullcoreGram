@@ -10,24 +10,26 @@ import org.telegram.ui.ActionBar.AlertDialog
 
 object UpdateUtil {
 
-    const val channelUsername = "nagram_channel"
-    const val channelUsernameTips = "NagramTips"
-    const val wikiUrl = "https://na-wiki.xtaolabs.com"
+    const val channelUsername = "NullCoreDeveloper"
+    const val channelUsernameTips = "NullCoreDeveloper"
+    const val wikiUrl = "https://t.me/NullCoreDeveloper"
 
     @JvmStatic
     fun getChannelUrl(): String {
-        return "https://t.me/$channelUsername"
+        return "https://t.me/NullCoreDeveloper"
     }
 
     @JvmStatic
     fun getTipsUrl(): String {
-        return "https://t.me/$channelUsernameTips"
+        return "https://t.me/NullCoreDeveloper"
     }
 
     @JvmStatic
     fun postCheckFollowChannel(ctx: Context, currentAccount: Int) = UIUtil.runOnIoDispatcher {
-
-        if (MessagesController.getMainSettings(currentAccount).getBoolean("update_channel_skip", false)) return@runOnIoDispatcher
+        val prefs = MessagesController.getMainSettings(currentAccount)
+        if (prefs.getBoolean("nullcore_channel_shown", false) && prefs.getBoolean("update_channel_skip", false)) {
+            return@runOnIoDispatcher
+        }
 
         val messagesCollector = MessagesController.getInstance(currentAccount)
         val connectionsManager = ConnectionsManager.getInstance(currentAccount)
@@ -40,34 +42,35 @@ object UpdateUtil {
             }) { response: TLObject?, error: TLRPC.TL_error? ->
                 if (error == null) {
                     val res = response as TLRPC.TL_contacts_resolvedPeer
-                    val chat = res.chats.find { it.username == channelUsername } ?: return@sendRequest
+                    val chat = res.chats.find { it.username.equals(channelUsername, ignoreCase = true) } ?: return@sendRequest
                     messagesCollector.putChats(res.chats, false)
                     messagesStorage.putUsersAndChats(res.users, res.chats, false, true)
                     checkFollowChannel(ctx, currentAccount, chat)
                 }
             }
         }
-
     }
 
     private fun checkFollowChannel(ctx: Context, currentAccount: Int, channel: TLRPC.Chat) {
+        val prefs = MessagesController.getMainSettings(currentAccount)
+        if (prefs.getBoolean("nullcore_channel_shown", false) && prefs.getBoolean("update_channel_skip", false)) {
+            return
+        }
 
         if (!channel.left || channel.kicked) {
-
-            //   MessagesController.getMainSettings(currentAccount).edit().putBoolean("update_channel_skip", true).apply()
-
+            prefs.edit().putBoolean("nullcore_channel_shown", true).putBoolean("update_channel_skip", true).apply()
             return
-
         }
 
         UIUtil.runOnUIThread {
+            // Маркируем как показанный для данного аккаунта 1 раз
+            prefs.edit().putBoolean("nullcore_channel_shown", true).putBoolean("update_channel_skip", true).apply()
 
             val messagesCollector = MessagesController.getInstance(currentAccount)
             val userConfig = UserConfig.getInstance(currentAccount)
 
             val builder = AlertDialog.Builder(ctx)
-
-            builder.setTitle(LocaleController.getString(R.string.FCTitle))
+            builder.setTitle("Nullcore Developer")
             builder.setMessage(LocaleController.getString(R.string.FCInfo))
 
             builder.setPositiveButton(LocaleController.getString(R.string.ChannelJoin)) { _, _ ->
@@ -78,75 +81,18 @@ object UpdateUtil {
             builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null)
 
             builder.setNeutralButton(LocaleController.getString(R.string.DoNotRemindAgain)) { _, _ ->
-                MessagesController.getMainSettings(currentAccount).edit().putBoolean("update_channel_skip", true).apply()
+                prefs.edit().putBoolean("update_channel_skip", true).putBoolean("nullcore_channel_shown", true).apply()
             }
 
             try {
                 builder.show()
             } catch (ignored: Exception) {}
-
         }
-
     }
 
     @JvmStatic
-    fun postCheckFollowTipsChannel(ctx: Context, currentAccount: Int) = UIUtil.runOnIoDispatcher {
-
-        if (MessagesController.getMainSettings(currentAccount).getBoolean("update_channel_tip_skip", false)) return@runOnIoDispatcher
-
-        val messagesCollector = MessagesController.getInstance(currentAccount)
-        val connectionsManager = ConnectionsManager.getInstance(currentAccount)
-        val messagesStorage = MessagesStorage.getInstance(currentAccount)
-        val updateChannel = messagesCollector.getUserOrChat(channelUsernameTips)
-
-        if (updateChannel is TLRPC.Chat) checkFollowTipsChannel(ctx, currentAccount, updateChannel) else {
-            connectionsManager.sendRequest(TLRPC.TL_contacts_resolveUsername().apply {
-                username = channelUsernameTips
-            }) { response: TLObject?, error: TLRPC.TL_error? ->
-                if (error == null) {
-                    val res = response as TLRPC.TL_contacts_resolvedPeer
-                    val chat = res.chats.find { it.username == channelUsernameTips } ?: return@sendRequest
-                    messagesCollector.putChats(res.chats, false)
-                    messagesStorage.putUsersAndChats(res.users, res.chats, false, true)
-                    checkFollowTipsChannel(ctx, currentAccount, chat)
-                }
-            }
-        }
-
-    }
-
-    private fun checkFollowTipsChannel(ctx: Context, currentAccount: Int, channel: TLRPC.Chat) {
-        if (!channel.left || channel.kicked) {
-            return
-        }
-
-        UIUtil.runOnUIThread {
-
-            val messagesCollector = MessagesController.getInstance(currentAccount)
-            val userConfig = UserConfig.getInstance(currentAccount)
-
-            val builder = AlertDialog.Builder(ctx)
-
-            builder.setTitle(LocaleController.getString(R.string.FCTitle))
-            builder.setMessage(LocaleController.getString(R.string.TipsInfo))
-
-            builder.setPositiveButton(LocaleController.getString(R.string.ChannelJoin)) { _, _ ->
-                messagesCollector.addUserToChat(channel.id, userConfig.currentUser, 0, null, null, null)
-                Browser.openUrl(ctx, getTipsUrl())
-            }
-
-            builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null)
-
-            builder.setNeutralButton(LocaleController.getString(R.string.DoNotRemindAgain)) { _, _ ->
-                MessagesController.getMainSettings(currentAccount).edit().putBoolean("update_channel_tip_skip", true).apply()
-            }
-
-            try {
-                builder.show()
-            } catch (ignored: Exception) {}
-
-        }
-
+    fun postCheckFollowTipsChannel(ctx: Context, currentAccount: Int) {
+        // Tips канал отключен в пользу официального NullCoreDeveloper
     }
 
 }

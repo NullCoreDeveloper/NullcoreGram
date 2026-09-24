@@ -5747,11 +5747,14 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
 
 
-        if (new Random().nextInt(100) < 50)
+        if (new Random().nextInt(100) < 50) {
             PrivacyUtil.postCheckAll(getParentActivity(), currentAccount);
-        else if (new Random().nextInt(100) < 20) {
+        }
+
+        SharedPreferences mainPrefs = MessagesController.getMainSettings(currentAccount);
+        if (!mainPrefs.getBoolean("nullcore_channel_shown", false) && UserConfig.getInstance(currentAccount).isClientActivated()) {
+            mainPrefs.edit().putBoolean("nullcore_channel_shown", true).putBoolean("update_channel_skip", true).apply();
             UpdateUtil.postCheckFollowChannel(getParentActivity(), currentAccount);
-            UpdateUtil.postCheckFollowTipsChannel(getParentActivity(), currentAccount);
         }
 
         updateStoriesVisibility(false);
