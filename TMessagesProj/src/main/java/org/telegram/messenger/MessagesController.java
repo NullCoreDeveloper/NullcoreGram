@@ -15926,12 +15926,17 @@ public class MessagesController extends BaseController implements NotificationCe
 
         TLObject request;
 
-        final TLRPC.Chat chat = getChat(chatId); final boolean isChannel = ChatObject.isChannel(chat);
-        final boolean isMegagroup = isChannel && chat.megagroup;
+        TLRPC.Chat chat = getChat(chatId);
+        if (chat == null) {
+            chat = getMessagesStorage().getChat(chatId);
+        }
+        final boolean isChannel = ChatObject.isChannel(chat);
+        final boolean isMegagroup = isChannel && chat != null && chat.megagroup;
         TLRPC.InputUser inputUser = getInputUser(user);
+        final boolean isSelf = (inputUser instanceof TLRPC.TL_inputUserSelf) || (user != null && user.id == getUserConfig().getClientUserId()) || (user == null);
         if (botHash == null || isChannel && !isMegagroup) {
             if (isChannel) {
-                if (inputUser instanceof TLRPC.TL_inputUserSelf) {
+                if (isSelf) {
                     if (joiningToChannels.contains(chatId)) {
                         if (onError != null) {
                             onError.run(null);
@@ -15970,7 +15975,7 @@ public class MessagesController extends BaseController implements NotificationCe
         }
 
         getConnectionsManager().sendRequest(request, (response, error) -> {
-            if (isChannel && inputUser instanceof TLRPC.TL_inputUserSelf) {
+            if (isChannel && isSelf) {
                 AndroidUtilities.runOnUIThread(() -> joiningToChannels.remove(chatId));
             }
             if (error != null) {

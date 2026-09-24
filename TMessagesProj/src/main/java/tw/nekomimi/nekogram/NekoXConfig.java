@@ -80,7 +80,7 @@ public class NekoXConfig {
 //    public static String ignoredUpdateTag = preferences.getString("ignoredUpdateTag", "");
 //    public static long nextUpdateCheck = preferences.getLong("nextUpdateCheckTimestamp", 0);
 
-    public static int customApi = preferences.getInt("custom_api", 0);
+    public static int customApi = preferences.getInt("custom_api", 1);
     public static int customAppId = preferences.getInt("custom_app_id", 0);
     public static String customAppHash = preferences.getString("custom_app_hash", "");
 
@@ -88,13 +88,13 @@ public class NekoXConfig {
 
     public static int currentAppId() {
         switch (customApi) {
-            case -1:
             case 0:
-                return BuildConfig.APP_ID;
             case 1:
                 return BuildVars.OFFICAL_APP_ID;
             case 2:
                 return BuildVars.TGX_APP_ID;
+            case -1:
+                return BuildConfig.APP_ID;
             default:
                 return customAppId;
         }
@@ -102,13 +102,13 @@ public class NekoXConfig {
     
     public static String currentAppHash() {
         switch (customApi) {
-            case -1:
             case 0:
-                return BuildConfig.APP_HASH;
             case 1:
                 return BuildVars.OFFICAL_APP_HASH;
             case 2:
                 return BuildVars.TGX_APP_HASH;
+            case -1:
+                return BuildConfig.APP_HASH;
             default:
                 return customAppHash;
         }

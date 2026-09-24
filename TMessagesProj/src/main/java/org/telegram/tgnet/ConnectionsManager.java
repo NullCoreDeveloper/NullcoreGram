@@ -767,6 +767,11 @@ public class ConnectionsManager extends BaseController {
         } catch (Throwable ignore) {
 
         }
+        if (apiId == BuildVars.OFFICAL_APP_ID) {
+            packageId = "org.telegram.messenger";
+        } else if (apiId == BuildConfig.APP_ID) {
+            packageId = "xyz.nextalone.nagram";
+        }
         if (packageId == null) {
             packageId = "";
         }
