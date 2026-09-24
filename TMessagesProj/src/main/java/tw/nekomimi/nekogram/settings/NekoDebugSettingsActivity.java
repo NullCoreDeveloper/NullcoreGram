@@ -29,6 +29,7 @@ import org.telegram.ui.ProfileActivity;
 import java.util.ArrayList;
 
 import tw.nekomimi.nekogram.NekoXConfig;
+import tw.nekomimi.nekogram.helpers.AppRestartHelper;
 import tw.nekomimi.nekogram.config.CellGroup;
 import tw.nekomimi.nekogram.config.ConfigItem;
 import tw.nekomimi.nekogram.config.cell.AbstractConfigCell;
@@ -61,7 +62,7 @@ public class NekoDebugSettingsActivity extends BaseNekoXSettingsActivity {
     private final AbstractConfigCell logsEnabledRow = cellGroup.appendCell(new ConfigCellTextCheck(
             new LogsEnabledConfigItem(),
             null,
-            BuildVars.LOGS_ENABLED ? LocaleController.getString(R.string.DebugMenuDisableLogs) : LocaleController.getString(R.string.DebugMenuEnableLogs)));
+            LocaleController.getString(R.string.DebugMenuEnableLogs)));
 
     // 切换版本
     private final AbstractConfigCell switchVersionRow = cellGroup.appendCell(new ConfigCellText("SwitchVersion", () -> {
@@ -87,6 +88,8 @@ public class NekoDebugSettingsActivity extends BaseNekoXSettingsActivity {
             new AutoUpdateChannelConfigItem(),
             autoUpdateChannelOptions,
             null));
+
+    private final AbstractConfigCell restartAppRow = cellGroup.appendCell(new ConfigCellText("RestartApp", AppRestartHelper::triggerRebirth));
 
     private final AbstractConfigCell divider0 = cellGroup.appendCell(new ConfigCellDivider());
 
@@ -120,10 +123,6 @@ public class NekoDebugSettingsActivity extends BaseNekoXSettingsActivity {
             AbstractConfigCell cell = cellGroup.rows.get(position);
             if (cell instanceof ConfigCellTextCheck) {
                 ((ConfigCellTextCheck) cell).onClick((TextCheckCell) view);
-                // 日志开关切换后立即刷新并按需显示/隐藏日志子菜单
-                if (position == cellGroup.rows.indexOf(logsEnabledRow)) {
-                    updateRows();
-                }
             } else if (cell instanceof ConfigCellTextDetail) {
                 RecyclerListView.OnItemClickListener o = ((ConfigCellTextDetail) cell).onItemClickListener;
                 if (o != null) {
@@ -140,7 +139,7 @@ public class NekoDebugSettingsActivity extends BaseNekoXSettingsActivity {
         listView.setOnItemLongClickListener((view, position, x, y) -> {
             var holder = listView.findViewHolderForAdapterPosition(position);
             if (holder != null && listAdapter.isEnabled(holder)) {
-                createLongClickDialog(context, NekoDebugSettingsActivity.this, "debug", position);
+                createLongClickDialog(view, NekoDebugSettingsActivity.this, "debug", position);
                 return true;
             }
             return false;
@@ -210,21 +209,6 @@ public class NekoDebugSettingsActivity extends BaseNekoXSettingsActivity {
     @Override
     protected void setCanNotChange() {
         super.setCanNotChange();
-
-        cellGroup.rows.remove(logsHeaderRow);
-        cellGroup.rows.remove(sendLogsRow);
-        cellGroup.rows.remove(sendLastLogsRow);
-        cellGroup.rows.remove(clearLogsRow);
-        cellGroup.rows.remove(divider1);
-
-        if (BuildVars.LOGS_ENABLED) {
-            int idx = cellGroup.rows.indexOf(divider0);
-            cellGroup.rows.add(++idx, logsHeaderRow);
-            cellGroup.rows.add(++idx, sendLogsRow);
-            cellGroup.rows.add(++idx, sendLastLogsRow);
-            cellGroup.rows.add(++idx, clearLogsRow);
-            cellGroup.rows.add(++idx, divider1);
-        }
 
         addRowsToMap();
     }

@@ -76,6 +76,7 @@ import java.util.Map;
 import tw.nekomimi.nekogram.NekoXConfig;
 import tw.nekomimi.nekogram.NekoConfig;
 import tw.nekomimi.nekogram.folder.FolderIconHelper;
+import xyz.nextalone.nagram.NaConfig;
 
 @SuppressLint("ViewConstructor")
 public class FilterTabsView extends FrameLayout {
@@ -322,7 +323,7 @@ public class FilterTabsView extends FrameLayout {
 
         @Override
         protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-            int w = currentTab.getWidth(false) + FolderIconHelper.getPaddingTab() + additionalTabWidth;
+            int w = currentTab.getWidth(false) + dp(TAB_PADDING_WIDTH) + additionalTabWidth;
             setMeasuredDimension(w, MeasureSpec.getSize(heightMeasureSpec));
         }
 
@@ -1404,7 +1405,7 @@ public class FilterTabsView extends FrameLayout {
         Tab tab = new Tab(id, text(text, entities), emoticon, noanimate);
         tab.isDefault = isDefault;
         tab.isLocked = isLocked;
-        allTabsWidth += tab.getWidth(true) + FolderIconHelper.getPaddingTab();
+        allTabsWidth += tab.getWidth(true) + dp(TAB_PADDING_WIDTH);
         tabs.add(tab);
     }
 
@@ -1423,7 +1424,7 @@ public class FilterTabsView extends FrameLayout {
         Tab tab = new Tab(id, text, emoticon, noanimate);
         tab.isDefault = isDefault;
         tab.isLocked = isLocked;
-        allTabsWidth += tab.getWidth(true) + FolderIconHelper.getPaddingTab();
+        allTabsWidth += tab.getWidth(true) + dp(TAB_PADDING_WIDTH);
         tabs.add(tab);
     }
 
@@ -1512,7 +1513,7 @@ public class FilterTabsView extends FrameLayout {
             positionToWidth.put(a, tabWidth);
             positionToCount.put(a, tabs.get(a).counter);
             positionToX.put(a, xOffset + additionalTabWidth / 2);
-            xOffset += tabWidth + FolderIconHelper.getPaddingTab() + additionalTabWidth;
+            xOffset += tabWidth + dp(TAB_PADDING_WIDTH) + additionalTabWidth;
         }
     }
 
@@ -1629,6 +1630,13 @@ public class FilterTabsView extends FrameLayout {
                 counterVisible = tabView.tabCounterVisible;
             }
         }
+        if (NaConfig.INSTANCE.getTabStyleStroke().Bool()) {
+            selectorDrawable.setStroke(AndroidUtilities.dp(1), Theme.getColor(activeTextColorKey, resourcesProvider));
+            selectorDrawable.setColor(ColorUtils.setAlphaComponent(Theme.getColor(tabLineColorKey, resourcesProvider), 50));
+        } else {
+            selectorDrawable.setStroke(0, 0);
+            selectorDrawable.setColor(Theme.getColor(tabLineColorKey, resourcesProvider));
+        }
         if (indicatorWidth != 0) {
             canvas.save();
             canvas.translate(listView.getTranslationX(), 0);
@@ -1638,7 +1646,7 @@ public class FilterTabsView extends FrameLayout {
 
             final int y = height / 2 - dp(14);
             selectorDrawable.setBounds((int) (indicatorX - dp(TAB_INTERNAL_PADDING) - add), y, (int) (indicatorX + indicatorWidth + dp(TAB_INTERNAL_PADDING) + add), y + dp(28));
-            selectorDrawable.setAlpha(31);
+            selectorDrawable.setAlpha(NaConfig.INSTANCE.getTabStyleStroke().Bool() ? 255 : 31);
             selectorDrawable.draw(canvas);
             canvas.restore();
         }
@@ -1851,10 +1859,12 @@ public class FilterTabsView extends FrameLayout {
                 invalidated = true;
                 requestLayout();
                 allTabsWidth = 0;
-                if (!NekoConfig.hideAllTab.Bool())
-                    findDefaultTab().setTitle(LocaleController.getString(R.string.FilterAllChats), null, false);
+                final FilterTabsView.Tab defaultTab = findDefaultTab();
+                if (defaultTab != null && !NekoConfig.hideAllTab.Bool()) {
+                    defaultTab.setTitle(LocaleController.getString(R.string.FilterAllChats), null, false);
+                }
                 for (int b = 0; b < N; b++) {
-                    allTabsWidth += tabs.get(b).getWidth(true) + FolderIconHelper.getPaddingTab();
+                    allTabsWidth += tabs.get(b).getWidth(true) + dp(TAB_PADDING_WIDTH);
                 }
                 break;
             }
@@ -1881,12 +1891,16 @@ public class FilterTabsView extends FrameLayout {
             invalidated = true;
             requestLayout();
             listView.setItemAnimator(itemAnimator);
-            adapter.notifyDataSetChanged();
+            if (adapter != null) {
+                adapter.notifyDataSetChanged();
+            }
             allTabsWidth = 0;
-            if (!NekoConfig.hideAllTab.Bool())
-                findDefaultTab().setTitle(LocaleController.getString(R.string.FilterAllChats), null, false);
+            final FilterTabsView.Tab defaultTab = findDefaultTab();
+            if (defaultTab != null && !NekoConfig.hideAllTab.Bool()) {
+                defaultTab.setTitle(LocaleController.getString(R.string.FilterAllChats), null, false);
+            }
             for (int b = 0, N = tabs.size(); b < N; b++) {
-                allTabsWidth += tabs.get(b).getWidth(true) + FolderIconHelper.getPaddingTab();
+                allTabsWidth += tabs.get(b).getWidth(true) + dp(TAB_PADDING_WIDTH);
             }
         }
     }

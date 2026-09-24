@@ -6,6 +6,7 @@ import android.util.Base64
 import org.telegram.messenger.LocaleController
 import org.telegram.messenger.R
 import tw.nekomimi.nekogram.config.ConfigItem
+import xyz.nextalone.nagram.helper.DoubleTap
 import tw.nekomimi.nekogram.config.ConfigItemKeyLinked
 import java.io.ByteArrayInputStream
 import java.io.ObjectInputStream
@@ -139,9 +140,15 @@ object NaConfig {
             ConfigItem.configTypeBool,
             false
         )
-    val doubleTapAction =
+    val doubleTapActionIncoming =
         addConfig(
-            "DoubleTapAction",
+            "DoubleTapActionIncoming",
+            ConfigItem.configTypeInt,
+            0
+        )
+    val doubleTapActionOutgoing =
+        addConfig(
+            "DoubleTapActionOutgoing",
             ConfigItem.configTypeInt,
             0
         )
@@ -188,6 +195,12 @@ object NaConfig {
             "DateOfForwardedMsg",
             ConfigItem.configTypeBool,
             false
+        )
+    val showForwardCount =
+        addConfig(
+            "ShowForwardCount",
+            ConfigItem.configTypeBool,
+            true
         )
     val showMessageID =
         addConfig(
@@ -586,7 +599,7 @@ object NaConfig {
         addConfig(
             "DisableFlagSecure",
             ConfigItem.configTypeBool,
-            true
+            false
         )
     val centerActionBarTitle =
         addConfig(
@@ -1349,6 +1362,50 @@ object NaConfig {
             ConfigItem.configTypeBool,
             false
         )
+    val inputTextAnimations = addConfig("InputTextAnimations", ConfigItem.configTypeBool, false)
+    val inputAnimationStrength = addConfig("InputAnimationStrength", ConfigItem.configTypeInt, 2)
+    val forceVideoNewRewindMethod =
+        addConfig(
+            "ForceVideoNewRewindMethod",
+            ConfigItem.configTypeBool,
+            false
+        )
+    val tabStyleStroke =
+        addConfig(
+            "TabStyleStroke",
+            ConfigItem.configTypeBool,
+            false
+        )
+    val addCommaAfterMention =
+        addConfig(
+            "AddCommaAfterMention",
+            ConfigItem.configTypeBool,
+            false
+        )
+    val useSystemFontInTitle =
+        addConfig(
+            "UseSystemFontInTitle",
+            ConfigItem.configTypeBool,
+            false
+        )
+    val materialDesign3ChatHeader =
+        addConfig(
+            "MaterialDesign3ChatHeader",
+            ConfigItem.configTypeBool,
+            false
+        )
+    val switchStyle =
+        addConfig(
+            "SwitchStyle",
+            ConfigItem.configTypeInt,
+            SwitchStyle.TELEGRAM.value
+        )
+    val disableChatListSwipeGesture =
+        addConfig(
+            "DisableChatListSwipeGesture",
+            ConfigItem.configTypeBool,
+            false
+        )
 
     private fun addConfig(
         k: String,
@@ -1386,6 +1443,25 @@ object NaConfig {
         return a
     }
 
+    private fun checkMigrate() {
+        // Split the legacy setting once, preserving independently saved choices.
+        if (preferences.contains("DoubleTapAction")) {
+            val legacyAction =
+                preferences.getInt("DoubleTapAction", DoubleTap.DOUBLE_TAP_ACTION_NONE)
+            val editor = preferences.edit()
+            if (!preferences.contains(doubleTapActionIncoming.key)) {
+                editor.putInt(
+                    doubleTapActionIncoming.key,
+                    if (legacyAction == DoubleTap.DOUBLE_TAP_ACTION_EDIT) DoubleTap.DOUBLE_TAP_ACTION_NONE else legacyAction
+                )
+            }
+            if (!preferences.contains(doubleTapActionOutgoing.key)) {
+                editor.putInt(doubleTapActionOutgoing.key, legacyAction)
+            }
+            editor.apply()
+        }
+    }
+
     fun loadConfig(
         force: Boolean
     ) {
@@ -1395,6 +1471,7 @@ object NaConfig {
             if (configLoaded && !force) {
                 return
             }
+            checkMigrate()
             for (i in configs.indices) {
                 val o =
                     configs[i]

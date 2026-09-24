@@ -1042,8 +1042,8 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
             counterView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 11);
             counterView.setTypeface(AndroidUtilities.bold());
             counterView.setGravity(Gravity.CENTER);
-            counterView.setTextColor(Theme.getColor(Theme.key_featuredStickers_buttonText, resourcesProvider));
-            counterView.setBackground(Theme.createRoundRectDrawable(dp(10), Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider)));
+            counterView.setTextColor(Theme.getColor(Theme.key_chats_unreadCounterText, resourcesProvider));
+            counterView.setBackground(Theme.createRoundRectDrawable(dp(10), Theme.getColor(Theme.key_chats_unreadCounter, resourcesProvider)));
 
             arrowView = new ImageView(context);
             arrowView.setImageResource(R.drawable.msg_arrowright);
@@ -1221,6 +1221,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
             subtitleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText, resourcesProvider));
             valueView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText, resourcesProvider));
             iconBackground.setDrawBorder(resourcesProvider != null ? resourcesProvider.isDark() : Theme.isCurrentThemeDark());
+            Theme.applyThemeMonetColor(iconView, resourcesProvider, false);
         }
 
         private boolean twoLines;
@@ -1269,13 +1270,20 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
             }
 
             public void setColor(int topColor, int bottomColor) {
+                setColor(topColor, bottomColor, Theme.isCurrentThemeMonet());
+            }
+
+            public void setColor(int topColor, int bottomColor, boolean useAccentColor) {
+                if (useAccentColor) {
+                    topColor = bottomColor = Theme.getColor(Theme.key_chats_actionBackground);
+                }
                 gradient = new LinearGradient(0, 0, 0, dp(28), new int[] { topColor, bottomColor }, new float[] { 0, 1 }, Shader.TileMode.CLAMP);
                 paint.setShader(gradient);
             }
 
             private boolean border;
             public void setDrawBorder(boolean drawBorder) {
-                this.border = drawBorder;
+                this.border = drawBorder && !Theme.isCurrentThemeMonet();
             }
 
             @Override

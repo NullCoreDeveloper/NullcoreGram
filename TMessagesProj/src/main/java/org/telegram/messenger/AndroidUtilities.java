@@ -6711,6 +6711,10 @@ public class AndroidUtilities {
         return false;
     }
 
+    public static String getHelloWorld() {
+        return "Hello World!";
+    }
+
     public static String getBuildVersionInfo() {
         String[] abi = Build.SUPPORTED_ABIS[0].toLowerCase(Locale.ROOT).split("-");
         return "NCgram v" + BuildConfig.VERSION_NAME + " (" + BuildConfig.BUILD_TIMESTAMP + ") " + abi[abi.length - 1];

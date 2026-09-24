@@ -127,6 +127,7 @@ public class NekoExperimentalSettingsActivity extends BaseNekoXSettingsActivity 
             }));
     private final AbstractConfigCell useSystemAiServiceRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getUseSystemAiService(), LocaleController.getString(R.string.UseSystemAiServiceDesc)));
     private final AbstractConfigCell fixUrlPagePreviewRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getFixUrlPagePreview()));
+    private final AbstractConfigCell forceVideoNewRewindMethodRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getForceVideoNewRewindMethod()));
     private final AbstractConfigCell divider1 = cellGroup.appendCell(new ConfigCellDivider());
 
     // fixUrlAutoInlineBot
@@ -293,7 +294,7 @@ public class NekoExperimentalSettingsActivity extends BaseNekoXSettingsActivity 
         listView.setOnItemLongClickListener((view, position, x, y) -> {
             var holder = listView.findViewHolderForAdapterPosition(position);
             if (holder != null && listAdapter.isEnabled(holder)) {
-                createLongClickDialog(context, NekoExperimentalSettingsActivity.this, "experimental", position);
+                createLongClickDialog(view, NekoExperimentalSettingsActivity.this, "experimental", position);
                 return true;
             }
             return false;

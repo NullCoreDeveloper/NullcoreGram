@@ -2478,6 +2478,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     swipeFolderBack = false;
                     return makeMovementFlags(ItemTouchHelper.UP | ItemTouchHelper.DOWN, 0);
                 } else {
+                    if (NaConfig.INSTANCE.getDisableChatListSwipeGesture().Bool()) {
+                        return 0;
+                    }
                     int currentDialogsType = initialDialogsType;
                     try {
                         currentDialogsType = parentPage.dialogsAdapter.getDialogsType();
@@ -3619,12 +3622,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     TLRPC.User self = UserConfig.getInstance(currentAccount).getCurrentUser();
                     if (self != null && self.first_name != null) title = self.first_name;
                 }
-                actionBar.centerTitle(false);
-                if (title.equals(getString(R.string.NekoX))) {
-                    actionBar.setTitle(title, statusDrawable);
-                } else {
-                    actionBar.setTitle(title, statusDrawable);
-                }
+                actionBar.setTitle(title, statusDrawable);
                 actionBar.setOnLongClickListener(v -> {
                     if (NekoConfig.hideAllTab.Bool() && filterTabsView != null && filterTabsView.getCurrentTabId() != Integer.MAX_VALUE) {
                         filterTabsView.toggleAllTabs(true);
