@@ -93,10 +93,10 @@ public class NekoPasscodeSettingsActivity extends BaseNekoSettingsActivity {
         } else if (position == stealthToggleRow) {
             if (PasscodeHelper.isStealthModeRevealed()) {
                 PasscodeHelper.lockHiddenAccounts(getParentActivity());
-                BulletinFactory.of(this).createSimpleBulletin(R.drawable.msg_filled_shield, LocaleController.getString("PasscodeStealthModeHidden", R.string.PasscodeStealthModeHidden)).show();
+                BulletinFactory.of(this).createSimpleBulletin(R.drawable.msg_secret, LocaleController.getString("PasscodeStealthModeHidden", R.string.PasscodeStealthModeHidden)).show();
             } else {
                 PasscodeHelper.revealAllHiddenAccounts();
-                BulletinFactory.of(this).createSimpleBulletin(R.drawable.msg_unlock, LocaleController.getString("PasscodeStealthModeRevealed", R.string.PasscodeStealthModeRevealed)).show();
+                BulletinFactory.of(this).createSimpleBulletin(R.drawable.menu_unlock, LocaleController.getString("PasscodeStealthModeRevealed", R.string.PasscodeStealthModeRevealed)).show();
             }
             listAdapter.notifyItemChanged(stealthToggleRow);
             getNotificationCenter().postNotificationName(NotificationCenter.mainUserInfoChanged);
@@ -111,14 +111,10 @@ public class NekoPasscodeSettingsActivity extends BaseNekoSettingsActivity {
                     validAccounts.add(a);
                 }
             }
-            int currentSafe = PasscodeHelper.getSafeAccount();
-            int selectedIdx = validAccounts.indexOf(currentSafe);
-            if (selectedIdx < 0) selectedIdx = 0;
 
             AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
             builder.setTitle(LocaleController.getString("PasscodeSafeAccount", R.string.PasscodeSafeAccount));
-            int finalSelectedIdx = selectedIdx;
-            builder.setSingleChoiceItems(names.toArray(new CharSequence[0]), finalSelectedIdx, (dialog, which) -> {
+            builder.setItems(names.toArray(new CharSequence[0]), (dialog, which) -> {
                 int chosen = validAccounts.get(which);
                 PasscodeHelper.setSafeAccount(chosen);
                 dialog.dismiss();

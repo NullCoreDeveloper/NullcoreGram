@@ -15926,10 +15926,8 @@ public class MessagesController extends BaseController implements NotificationCe
 
         TLObject request;
 
-        TLRPC.Chat chat = getChat(chatId);
-        if (chat == null) {
-            chat = getMessagesStorage().getChat(chatId);
-        }
+        TLRPC.Chat initialChat = getChat(chatId);
+        final TLRPC.Chat chat = initialChat != null ? initialChat : getMessagesStorage().getChat(chatId);
         final boolean isChannel = ChatObject.isChannel(chat);
         final boolean isMegagroup = isChannel && chat != null && chat.megagroup;
         TLRPC.InputUser inputUser = getInputUser(user);

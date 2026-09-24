@@ -293,7 +293,7 @@ public class PasscodeHelper {
                         AndroidUtilities.hideKeyboard(editText);
                         dialog.dismiss();
                         executePanic(activity);
-                        BulletinFactory.of(fragment).createSimpleBulletin(R.drawable.msg_filled_shield, LocaleController.getString("PasscodePanicExecuted", R.string.PasscodePanicExecuted)).show();
+                        BulletinFactory.of(fragment).createSimpleBulletin(R.drawable.msg_secret, LocaleController.getString("PasscodePanicExecuted", R.string.PasscodePanicExecuted)).show();
                         return;
                     }
                 }
@@ -308,7 +308,7 @@ public class PasscodeHelper {
                             if (activity instanceof LaunchActivity) {
                                 ((LaunchActivity) activity).switchToAccount(a, true);
                             }
-                            BulletinFactory.of(fragment).createSimpleBulletin(R.drawable.msg_unlock, LocaleController.getString("PasscodeStealthModeRevealed", R.string.PasscodeStealthModeRevealed)).show();
+                            BulletinFactory.of(fragment).createSimpleBulletin(R.drawable.menu_unlock, LocaleController.getString("PasscodeStealthModeRevealed", R.string.PasscodeStealthModeRevealed)).show();
                             return;
                         }
                     }
@@ -317,7 +317,7 @@ public class PasscodeHelper {
                     AndroidUtilities.hideKeyboard(editText);
                     dialog.dismiss();
                     revealAllHiddenAccounts();
-                    BulletinFactory.of(fragment).createSimpleBulletin(R.drawable.msg_unlock, LocaleController.getString("PasscodeStealthModeRevealed", R.string.PasscodeStealthModeRevealed)).show();
+                    BulletinFactory.of(fragment).createSimpleBulletin(R.drawable.menu_unlock, LocaleController.getString("PasscodeStealthModeRevealed", R.string.PasscodeStealthModeRevealed)).show();
                     return;
                 }
                 AndroidUtilities.shakeView(editText);

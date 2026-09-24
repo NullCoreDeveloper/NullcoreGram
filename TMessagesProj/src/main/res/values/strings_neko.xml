@@ -196,6 +196,7 @@
     <string name="PasscodePanicCodeRemove">Turn off panic code</string>
     <string name="PasscodePanicCodeRemoveConfirmMessage">Are you sure you want to turn off panic code?</string>
     <string name="PasscodeRemoveConfirmMessage">Are you sure you want to remove passcode for this account?</string>
+    <string name="PasscodePanicCodeAbout">Use the panic code to log out accounts if something goes wrong.</string>
     <string name="PasscodeEnableStealthMode">Enable Stealth Mode</string>
     <string name="PasscodeEnableStealthModeAbout">Allows hiding selected accounts, suppressing their notifications, and switching to safe account on minimize.</string>
     <string name="PasscodeSafeAccount">Safe account</string>

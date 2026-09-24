@@ -40834,7 +40834,7 @@ public class ChatActivity extends BaseFragment implements
             final MessageObject source = cell.getMessageObject();
             ItemOptions options = ItemOptions.makeOptions(ChatActivity.this, cell)
                 .add(R.drawable.msg_download, getString(R.string.SaveToDownloads), () -> saveRichDocument(cell, document));
-            if (!cell.needDrawBluredPreview()) {
+            if (source == null || !source.needDrawBluredPreview()) {
                 options.add(R.drawable.msg_shareout, getString(R.string.ShareFile), () -> shareFile(source, document));
             }
             options.setDrawScrim(false)
