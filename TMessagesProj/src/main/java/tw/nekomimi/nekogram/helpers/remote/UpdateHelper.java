@@ -7,6 +7,7 @@ import org.json.JSONObject;
 import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.FileLog;
 import org.telegram.tgnet.TLRPC;
+import tw.nekomimi.nekogram.NekoXConfig;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -33,7 +34,7 @@ public class UpdateHelper extends BaseRemoteHelper {
 
     @Override
     protected String getTag() {
-        return "update"; // Not used directly in this implementation
+        return NekoXConfig.autoUpdateReleaseChannel >= 2 ? "updatetest" : "updatev2";
     }
 
     private int compareVersions(String v1, String v2) {
@@ -62,15 +63,22 @@ public class UpdateHelper extends BaseRemoteHelper {
 
     public void checkNewVersionAvailable(Delegate delegate, boolean updateAlways_) {
         updateAlways = updateAlways_;
-        
+
         new Thread(() -> {
             try {
-                URL url = new URL("https://api.github.com/repos/NullCoreDeveloper/NullcoreGram/releases/latest");
+                String endpoint;
+                if (NekoXConfig.autoUpdateReleaseChannel >= 2) {
+                    endpoint = "https://api.github.com/repos/NullCoreDeveloper/NullcoreGram/releases";
+                } else {
+                    endpoint = "https://api.github.com/repos/NullCoreDeveloper/NullcoreGram/releases/latest";
+                }
+                URL url = new URL(endpoint);
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("GET");
                 connection.setConnectTimeout(5000);
                 connection.setReadTimeout(5000);
                 connection.setRequestProperty("Accept", "application/vnd.github.v3+json");
+                connection.setRequestProperty("User-Agent", "NullcoreGram");
 
                 if (connection.getResponseCode() == 200) {
                     BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
@@ -81,7 +89,21 @@ public class UpdateHelper extends BaseRemoteHelper {
                     }
                     reader.close();
 
-                    JSONObject releaseJson = new JSONObject(result.toString());
+                    String jsonStr = result.toString().trim();
+                    JSONObject releaseJson;
+                    if (jsonStr.startsWith("[")) {
+                        JSONArray releasesArray = new JSONArray(jsonStr);
+                        if (releasesArray.length() == 0) {
+                            if (delegate != null) {
+                                delegate.onTLResponse(null, null);
+                            }
+                            return;
+                        }
+                        releaseJson = releasesArray.getJSONObject(0);
+                    } else {
+                        releaseJson = new JSONObject(jsonStr);
+                    }
+
                     String tagName = releaseJson.getString("tag_name");
                     String version = tagName.startsWith("v") ? tagName.substring(1) : tagName;
                     String body = releaseJson.optString("body", "");
