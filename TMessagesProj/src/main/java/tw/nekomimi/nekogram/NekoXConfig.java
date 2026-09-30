@@ -80,7 +80,7 @@ public class NekoXConfig {
 //    public static String ignoredUpdateTag = preferences.getString("ignoredUpdateTag", "");
 //    public static long nextUpdateCheck = preferences.getLong("nextUpdateCheckTimestamp", 0);
 
-    public static int customApi = preferences.getInt("custom_api", 1);
+    public static int customApi = preferences.getInt("custom_api", -1);
     public static int customAppId = preferences.getInt("custom_app_id", 0);
     public static String customAppHash = preferences.getString("custom_app_hash", "");
 
