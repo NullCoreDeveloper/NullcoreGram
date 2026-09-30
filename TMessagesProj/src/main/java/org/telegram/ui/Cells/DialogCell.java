@@ -2814,7 +2814,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
             }
             spoilersPool.addAll(spoilers);
             spoilers.clear();
-            if (!NekoConfig.showSpoilersDirectly.Bool())
+            if (!NekoConfig.showSpoilersDirectly.Bool() || tw.nekomimi.nekogram.helpers.SpoilerChatsHelper.isChatSpoiler(currentDialogId))
                 SpoilerEffect.addSpoilers(this, messageLayout, -2, -2, spoilersPool, spoilers);
         } catch (Exception e) {
             messageLayout = null;
