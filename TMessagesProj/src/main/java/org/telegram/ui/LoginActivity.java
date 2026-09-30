@@ -10573,7 +10573,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                 true,
                 LocaleController.getString(R.string.UseCustomApiNotice));
         builder.addRadioItem(LocaleController.getString(R.string.CustomApiNo), NekoXConfig.customApi == -1 || NekoXConfig.customApi == 0, (cell) -> {
-            targetApi.set(0);
+            targetApi.set(-1);
             builder.doRadioCheck(cell);
             for (EditText input : inputs) {
                 input.setVisibility(View.GONE);
