@@ -295,4 +295,5 @@
     <string name="HiddenAccountsPanicDone">Emergency logout completed</string>
     <string name="HiddenAccountsHideNotifications">Suppress notifications</string>
     <string name="HiddenAccountsHideNotificationsAbout">Do not show push notifications or badges for hidden accounts while they are masked.</string>
+    <string name="HideNekoSettingsMasked">Hide N-Config in masking mode</string>
 </resources>

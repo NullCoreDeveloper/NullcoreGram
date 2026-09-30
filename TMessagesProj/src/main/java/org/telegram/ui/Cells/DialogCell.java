@@ -2787,6 +2787,13 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
             } else {
                 messageStringFinal = messageString;
             }
+            if (tw.nekomimi.nekogram.helpers.SpoilerChatsHelper.isChatSpoiler(currentDialogId)) {
+                android.text.SpannableStringBuilder ssb = new android.text.SpannableStringBuilder(messageStringFinal);
+                org.telegram.ui.Components.TextStyleSpan.TextStyleRun run = new org.telegram.ui.Components.TextStyleSpan.TextStyleRun();
+                run.flags |= org.telegram.ui.Components.TextStyleSpan.FLAG_STYLE_SPOILER;
+                ssb.setSpan(new org.telegram.ui.Components.TextStyleSpan(run), 0, ssb.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                messageStringFinal = ssb;
+            }
 
             Layout.Alignment align = isForum && LocaleController.isRTL ? Layout.Alignment.ALIGN_OPPOSITE : Layout.Alignment.ALIGN_NORMAL;
             if ((useForceThreeLines || SharedConfig.useThreeLinesLayout) && !hasTags()) {

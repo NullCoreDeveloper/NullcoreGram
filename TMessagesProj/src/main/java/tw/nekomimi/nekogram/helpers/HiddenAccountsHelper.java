@@ -222,6 +222,14 @@ public class HiddenAccountsHelper {
         preferences.edit().putBoolean("hide_notifications", hide).apply();
     }
 
+    public static boolean isHideSettingsWhenMasked() {
+        return preferences.getBoolean("hide_settings_masked", true);
+    }
+
+    public static void setHideSettingsWhenMasked(boolean hide) {
+        preferences.edit().putBoolean("hide_settings_masked", hide).apply();
+    }
+
     public static int getVisibleActivatedAccountsCount() {
         int count = 0;
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {

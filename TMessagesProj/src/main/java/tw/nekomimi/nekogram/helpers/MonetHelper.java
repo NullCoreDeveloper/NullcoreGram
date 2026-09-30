@@ -94,8 +94,13 @@ public class MonetHelper {
 
     public static int getColor(String color, boolean amoled) {
         try {
+            if (amoled) {
+                if ("n1_900".equals(color) || "n2_900".equals(color) || "n2_950".equals(color)) {
+                    color = "n1_1000";
+                }
+            }
             //noinspection ConstantConditions
-            int id = ids.getOrDefault(amoled && "n1_900".equals(color) ? "n1_1000" : color, 0);
+            int id = ids.getOrDefault(color, 0);
             return ApplicationLoader.applicationContext.getColor(id);
         } catch (Exception e) {
             Log.e("Theme", "Error loading color " + color);

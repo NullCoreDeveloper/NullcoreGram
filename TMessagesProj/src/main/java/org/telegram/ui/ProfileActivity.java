@@ -11160,7 +11160,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     filtersRow = rowCount++;
                 }
                 devicesRow = rowCount++;
-                nekoRow = rowCount++;
+                if (!tw.nekomimi.nekogram.helpers.HiddenAccountsHelper.isFeatureEnabled() || tw.nekomimi.nekogram.helpers.HiddenAccountsHelper.isRevealed() || !tw.nekomimi.nekogram.helpers.HiddenAccountsHelper.isHideSettingsWhenMasked()) {
+                    nekoRow = rowCount++;
+                }
                 languageRow = rowCount++;
                 devicesSectionRow = rowCount++;
                 if (!getMessagesController().premiumFeaturesBlocked()) {

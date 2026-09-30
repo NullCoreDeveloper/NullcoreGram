@@ -1785,7 +1785,7 @@ public class NotificationsController extends BaseController implements Notificat
     private int getTotalAllUnreadCount() {
         int count = 0;
         for (int a : SharedConfig.activeAccounts) {
-            if (HiddenAccountsHelper.isAccountHidden(a)) {
+            if (HiddenAccountsHelper.isAccountHidden(a) && HiddenAccountsHelper.isHideNotifications()) {
                 continue;
             }
             if (!UserConfig.getInstance(a).isClientActivated()) {
@@ -3385,7 +3385,7 @@ public class NotificationsController extends BaseController implements Notificat
     }
 
     private void playInChatSound() {
-        if (HiddenAccountsHelper.isAccountHidden(currentAccount) || !inChatSoundEnabled || MediaController.getInstance().isRecordingAudio()) {
+        if ((HiddenAccountsHelper.isAccountHidden(currentAccount) && HiddenAccountsHelper.isHideNotifications()) || !inChatSoundEnabled || MediaController.getInstance().isRecordingAudio()) {
             return;
         }
         try {
@@ -4164,7 +4164,7 @@ public class NotificationsController extends BaseController implements Notificat
     }
 
     private void showOrUpdateNotification(boolean notifyAboutLast) {
-        if (!getUserConfig().isClientActivated() || pushMessages.isEmpty() && storyPushMessages.isEmpty() || (!SharedConfig.showNotificationsForAllAccounts && currentAccount != UserConfig.selectedAccount) || HiddenAccountsHelper.isAccountHidden(currentAccount)) {
+        if (!getUserConfig().isClientActivated() || pushMessages.isEmpty() && storyPushMessages.isEmpty() || (!SharedConfig.showNotificationsForAllAccounts && currentAccount != UserConfig.selectedAccount) || (HiddenAccountsHelper.isAccountHidden(currentAccount) && HiddenAccountsHelper.isHideNotifications())) {
             dismissNotification();
             return;
         }

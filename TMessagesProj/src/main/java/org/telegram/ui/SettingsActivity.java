@@ -739,8 +739,10 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
             }
         }
 
-        items.add(SettingCell.Factory.of(100, 0xFF1BA4ED, 0xFF1488E1, R.drawable.msg_settings, getString(R.string.N_Config)));
-        items.add(UItem.asShadow(null));
+        if (!tw.nekomimi.nekogram.helpers.HiddenAccountsHelper.isFeatureEnabled() || tw.nekomimi.nekogram.helpers.HiddenAccountsHelper.isRevealed() || !tw.nekomimi.nekogram.helpers.HiddenAccountsHelper.isHideSettingsWhenMasked()) {
+            items.add(SettingCell.Factory.of(100, 0xFF1BA4ED, 0xFF1488E1, R.drawable.msg_settings, getString(R.string.N_Config)));
+            items.add(UItem.asShadow(null));
+        }
 
         items.add(SettingCell.Factory.of(1, IconBackgroundColors.BLUE.top, IconBackgroundColors.BLUE.bottom, R.drawable.settings_account, getString(R.string.SettingsAccount), getString(R.string.SettingsAccountInfo)));
         items.add(SettingCell.Factory.of(2, IconBackgroundColors.ORANGE.top, IconBackgroundColors.ORANGE.bottom, R.drawable.settings_chat, getString(R.string.SettingsChat), getString(R.string.SettingsChatInfo)));

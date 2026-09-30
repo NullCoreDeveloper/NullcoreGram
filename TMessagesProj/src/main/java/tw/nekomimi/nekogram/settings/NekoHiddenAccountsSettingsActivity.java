@@ -53,6 +53,7 @@ public class NekoHiddenAccountsSettingsActivity extends BaseNekoSettingsActivity
     private int autoHideHeaderRow;
     private int autoHideTimeoutRow;
     private int hideNotificationsRow;
+    private int hideSettingsRow;
     private int autoHideAboutRow;
 
     private int accountsHeaderRow;
@@ -128,6 +129,7 @@ public class NekoHiddenAccountsSettingsActivity extends BaseNekoSettingsActivity
             autoHideHeaderRow = rowCount++;
             autoHideTimeoutRow = rowCount++;
             hideNotificationsRow = rowCount++;
+            hideSettingsRow = rowCount++;
             autoHideAboutRow = rowCount++;
 
             accountsHeaderRow = rowCount++;
@@ -156,6 +158,7 @@ public class NekoHiddenAccountsSettingsActivity extends BaseNekoSettingsActivity
             autoHideHeaderRow = -1;
             autoHideTimeoutRow = -1;
             hideNotificationsRow = -1;
+            hideSettingsRow = -1;
             autoHideAboutRow = -1;
             accountsHeaderRow = -1;
             safeAccountRow = -1;
@@ -215,6 +218,12 @@ public class NekoHiddenAccountsSettingsActivity extends BaseNekoSettingsActivity
         } else if (position == hideNotificationsRow) {
             boolean current = HiddenAccountsHelper.isHideNotifications();
             HiddenAccountsHelper.setHideNotifications(!current);
+            if (view instanceof TextCheckCell) {
+                ((TextCheckCell) view).setChecked(!current);
+            }
+        } else if (position == hideSettingsRow) {
+            boolean current = HiddenAccountsHelper.isHideSettingsWhenMasked();
+            HiddenAccountsHelper.setHideSettingsWhenMasked(!current);
             if (view instanceof TextCheckCell) {
                 ((TextCheckCell) view).setChecked(!current);
             }
@@ -420,7 +429,9 @@ public class NekoHiddenAccountsSettingsActivity extends BaseNekoSettingsActivity
                     } else if (position == requirePinRow) {
                         checkCell.setTextAndCheck(LocaleController.getString("HiddenAccountsPin", R.string.HiddenAccountsPin), HiddenAccountsHelper.isPinEnabled(), pinConfigRow != -1);
                     } else if (position == hideNotificationsRow) {
-                        checkCell.setTextAndCheck(LocaleController.getString("HiddenAccountsHideNotifications", R.string.HiddenAccountsHideNotifications), HiddenAccountsHelper.isHideNotifications(), false);
+                        checkCell.setTextAndCheck(LocaleController.getString("HiddenAccountsHideNotifications", R.string.HiddenAccountsHideNotifications), HiddenAccountsHelper.isHideNotifications(), hideSettingsRow != -1);
+                    } else if (position == hideSettingsRow) {
+                        checkCell.setTextAndCheck(LocaleController.getString("HideNekoSettingsMasked", R.string.HideNekoSettingsMasked), HiddenAccountsHelper.isHideSettingsWhenMasked(), false);
                     } else if (position >= accountsStartRow && position < accountsEndRow) {
                         int index = position - accountsStartRow;
                         int account = accounts.get(index);

@@ -601,6 +601,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     private ActionBarMenuSubItem addToFolderItem;
     @Nullable
     private ActionBarMenuSubItem removeFromFolderItem;
+    private ActionBarMenuSubItem spoilerItem;
     @Nullable
     private ActionBarMenuSubItem archiveItem;
     @Nullable
@@ -730,6 +731,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     private final static int add_to_folder = 109;
     private final static int remove_from_folder = 110;
     private final static int community_ungroup = 111;
+    private final static int spoiler = 112;
 
     private final static int ARCHIVE_ITEM_STATE_PINNED = 0;
     private final static int ARCHIVE_ITEM_STATE_SHOWED = 1;
@@ -4118,7 +4120,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                         undoView.showWithAction(did, UndoView.ACTION_REMOVED_FROM_FOLDER, neverShow.size(), filter, null, null);
                     }
                     hideActionMode(false);
-                } else if (id == pin || id == read || id == delete || id == clear || id == mute || id == archive || id == block || id == archive2 || id == pin2) {
+                } else if (id == pin || id == read || id == delete || id == clear || id == mute || id == archive || id == block || id == archive2 || id == pin2 || id == spoiler) {
                     performSelectedDialogsAction(selectedDialogs, id, true, false);
                 }
             }
@@ -6872,6 +6874,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         readItem = otherItem.addSubItem(read, R.drawable.msg_markread, LocaleController.getString(R.string.MarkAsRead));
         clearItem = otherItem.addSubItem(clear, R.drawable.msg_clear, LocaleController.getString(R.string.ClearHistory));
         blockItem = otherItem.addSubItem(block, R.drawable.msg_block, LocaleController.getString(R.string.BlockUser));
+        spoilerItem = otherItem.addSubItem(spoiler, R.drawable.msg_secret, "Toggle Preview Spoiler");
 
         muteItem.setOnLongClickListener(e -> {
             performSelectedDialogsAction(selectedDialogs, mute, true, true);
@@ -9582,6 +9585,16 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 } else {
                     markAsUnread(selectedDialog);
                 }
+            } else if (action == spoiler) {
+                tw.nekomimi.nekogram.helpers.SpoilerChatsHelper.toggleChatSpoiler(selectedDialog);
+                if (viewPages != null) {
+                    for (int vp_index = 0; vp_index < viewPages.length; vp_index++) {
+                        if (viewPages[vp_index] != null && viewPages[vp_index].dialogsAdapter != null) {
+                            viewPages[vp_index].dialogsAdapter.notifyDataSetChanged();
+                        }
+                    }
+                }
+                hideActionMode(true);
             } else if (action == delete || action == clear) {
                 if (count == 1) {
                     if (action == delete && canDeletePsaSelected) {
@@ -10154,6 +10167,20 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 pinItem.setIcon(R.drawable.msg_unpin);
                 pinItem.setContentDescription(LocaleController.getString(R.string.UnpinFromTop));
                 pin2Item.setText(LocaleController.getString(R.string.DialogUnpin));
+            }
+        }
+        if (spoilerItem != null && selectedDialogs.size() > 0) {
+            boolean allSpoilered = true;
+            for (int i = 0; i < selectedDialogs.size(); i++) {
+                if (!tw.nekomimi.nekogram.helpers.SpoilerChatsHelper.isChatSpoiler(selectedDialogs.get(i))) {
+                    allSpoilered = false;
+                    break;
+                }
+            }
+            if (allSpoilered) {
+                spoilerItem.setText("Show Preview");
+            } else {
+                spoilerItem.setText("Hide Preview");
             }
         }
     }
