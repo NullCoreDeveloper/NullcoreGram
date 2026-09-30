@@ -483,7 +483,7 @@ public class NekoHiddenAccountsSettingsActivity extends BaseNekoSettingsActivity
         public int getItemViewType(int position) {
             if (position == statusShadowRow) {
                 return TYPE_SHADOW;
-            } else if (position == enableRow || position == requirePinRow || position == hideNotificationsRow || (position >= accountsStartRow && position < accountsEndRow)) {
+            } else if (position == enableRow || position == requirePinRow || position == hideNotificationsRow || position == hideSettingsRow || (position >= accountsStartRow && position < accountsEndRow)) {
                 return TYPE_CHECK;
             } else if (position == securityHeaderRow || position == autoHideHeaderRow || position == accountsHeaderRow || position == panicHeaderRow) {
                 return TYPE_HEADER;
